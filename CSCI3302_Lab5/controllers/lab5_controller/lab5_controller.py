@@ -5,6 +5,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.signal import convolve2d # Uncomment if you want to use something else for finding the configuration space
 import matplotlib.transforms as transforms
+import heapq
 
 MAX_SPEED = 7.0  # [rad/s]
 MAX_SPEED_MS = 0.633 # [m/s]
@@ -88,7 +89,46 @@ mode = 'planner'
 # mode = 'autonomous'
 # mode = 'picknplace'
 
+def dijkstra(map, start, end):
+    
+    rows, cols = map.shape
+    open_set = []
+    heapq.heappush(open_set, (0, start))  
 
+    came_from = {}
+    cost_so_far = {start: 0}
+
+    while open_set:
+        current_cost, current = heapq.heappop(open_set)
+
+        if current == end:
+            #reconstruct path
+            path = []
+            while current in came_from:
+                path.append(current)
+                current = came_from[current]
+            path.append(start)
+            path.reverse()
+            return path  
+            
+        for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:
+            neighbor = (current[0] + dx, current[1] + dy)
+
+            if 0 <= neighbor[0] < rows and 0 <= neighbor[1] < cols and map[neighbor] == 0:
+                new_cost = cost_so_far[current] + 1  
+
+                if neighbor not in cost_so_far or new_cost < cost_so_far[neighbor]:
+                    cost_so_far[neighbor] = new_cost
+                    priority = new_cost  
+                    heapq.heappush(open_set, (priority, neighbor))
+                    came_from[neighbor] = current  
+
+    return []
+def map_to_world(map_x, map_y):
+    """ Converts map indices to Webots world coordinates (meters) """
+    world_x = (map_x / 360) * 12 - 12
+    world_y = (map_y / 360) * 12 - 12
+    return (world_x, world_y)
 
 ###################
 #
@@ -154,6 +194,31 @@ waypoints = []
 if mode == 'autonomous':
     # Part 3.1: Load path from disk and visualize it
     waypoints = [] # Replace with code to load your path
+    filtered_map = np.load("../../maps/mapv1.npy")
+    kernel = np.ones((10, 10)) 
+    map_cspace = convolve2d(filtered_map, kernel, mode='same', boundary='wrap')
+    map_cspace = map_cspace > 0
+    start = (200,200)
+    end = (10,7)
+
+    path = dijkstra(map_cspace, start, end)
+    waypoints = [map_to_world(x, y) for (x, y) in path]
+
+
+    np.save("../../maps/path.npy", waypoints)
+    map_display = map_cspace.copy()
+    if path:
+        print("Path saved!")
+    else:
+        print("No valid path found")
+    for (x, y) in path:
+        map_display[x, y] = 0.5  
+    
+    plt.figure(figsize=(6,6))
+    plt.title("Path Visualization")
+    plt.imshow(map_display, cmap='gray', origin="lower")
+    # plt.colorbar(label="Path & Obstacles")
+    plt.show()
 
 state = 0 # use this to iterate through your path
 
