@@ -85,8 +85,8 @@ lidar_offsets = lidar_offsets[83:len(lidar_offsets)-83] # Only keep lidar readin
 ##################### IMPORTANT #####################
 # Set the mode here. Please change to 'autonomous' before submission
 # mode = 'manual' # Part 1.1: manual mode
-mode = 'planner'
-# mode = 'autonomous'
+# mode = 'planner'
+mode = 'autonomous'
 # mode = 'picknplace'
 
 def dijkstra(map, start, end):
@@ -195,7 +195,7 @@ if mode == 'autonomous':
     # Part 3.1: Load path from disk and visualize it
     waypoints = [] # Replace with code to load your path
     filtered_map = np.load("../../maps/mapv1.npy")
-    kernel = np.ones((10, 10)) 
+    kernel = np.ones((15, 15)) 
     map_cspace = convolve2d(filtered_map, kernel, mode='same', boundary='wrap')
     map_cspace = map_cspace > 0
     start = (200,200)
@@ -217,7 +217,7 @@ if mode == 'autonomous':
     plt.figure(figsize=(6,6))
     plt.title("Path Visualization")
     plt.imshow(map_display, cmap='gray', origin="lower")
-    # plt.colorbar(label="Path & Obstacles")
+    
     plt.show()
 
 state = 0 # use this to iterate through your path
