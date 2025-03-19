@@ -126,14 +126,24 @@ def dijkstra(map, start, end):
 
 def map_to_world(map_x, map_y):
     """ Converts map indices to Webots world coordinates (meters) """
-    world_x = (map_x / 360) * 12 - 12
-    world_y = (map_y / 360) * 12 - 12
+    # world_x = (map_x / 360) * 12 - 12
+    # world_y = (map_y / 360) * 12 - 12
+    world_x = map_x * (-12/360)
+    world_y = map_y * (-12/360)
     return (world_x, world_y)
 
 def world_to_map(world_x, world_y):
-    map_x = int(((world_x + 12)/12)* 360)
-    map_y = int(((world_y + 12)/12)* 360)
+    # map_x = int(((world_x + 12)/12)* 360)
+    # map_y = int(((world_y + 12)/12)* 360)
+    map_x = int(round(world_x * (360/-12)))
+    map_y = int(round(world_y * (360/-12)))
     return (map_x, map_y)
+
+def flip_xy(ref_x, ref_y):
+    # actual_y = 360 - ref_y
+    # actual_x = ref_x
+    # return (actual_y, actual_x)
+    return (ref_y, ref_x)
 
 ###################
 #
@@ -150,47 +160,14 @@ if mode == 'planner':
     end = None # (x, y) in 360x360 map
 
     # Part 2.3: Implement A* or Dijkstra's Algorithm to find a path
-    # def path_planner(map, start, end):
-    #     '''
-    #     :param map: A 2D numpy array of size 360x360 representing the world's cspace with 0 as free space and 1 as obstacle
-    #     :param start: A tuple of indices representing the start cell in the map
-    #     :param end: A tuple of indices representing the end cell in the map
-    #     :return: A list of tuples as a path from the given start to the given end in the given maze
-    #     '''
-    #     rows, cols = map.shape
-    #     open_set = []
-    #     heapq.heappush(open_set, (0, start))  
-
-    #     came_from = {}
-    #     cost_so_far = {start: 0}
-
-    #     while open_set:
-    #         current_cost, current = heapq.heappop(open_set)
-
-    #         if current == end:
-    #             #reconstruct path
-    #             path = []
-    #             while current in came_from:
-    #                 path.append(current)
-    #                 current = came_from[current]
-    #             path.append(start)
-    #             path.reverse()
-    #             return path  
-                
-    #         for dx, dy in [(-1,0), (1,0), (0,-1), (0,1), (1, 1), (-1, -1), (-1, 1), (1, -1)]:
-    #             neighbor = (current[0] + dx, current[1] + dy)
-
-    #             if 0 <= neighbor[0] < rows and 0 <= neighbor[1] < cols and map[neighbor] == 0:
-    #                 new_cost = cost_so_far[current] + 1  
-
-    #                 if neighbor not in cost_so_far or new_cost < cost_so_far[neighbor]:
-    #                     cost_so_far[neighbor] = new_cost
-    #                     priority = new_cost  
-    #                     heapq.heappush(open_set, (priority, neighbor))
-    #                     came_from[neighbor] = current  
-
-    #     return []
-        # pass
+    def path_planner(map, start, end):
+        '''
+        :param map: A 2D numpy array of size 360x360 representing the world's cspace with 0 as free space and 1 as obstacle
+        :param start: A tuple of indices representing the start cell in the map
+        :param end: A tuple of indices representing the end cell in the map
+        :return: A list of tuples as a path from the given start to the given end in the given maze
+        '''
+        pass
 
     # Part 2.1: Load map (map.npy) from disk and visualize it
     filtered_map = np.load("../../maps/mapv1.npy")
@@ -236,17 +213,21 @@ if mode == 'autonomous':
     kernel = np.ones((17, 17)) 
     map_cspace = convolve2d(filtered_map, kernel, mode='same', boundary='wrap')
     map_cspace = map_cspace > 0
-    # start = (316,300)
-    # start = (200, 200)
-    start = world_to_map(pose_x, pose_y)
-    end = (100,123)
+
+    # rotating and flipping map to match our coordinate system
+    map_cspace = np.fliplr(map_cspace)
+    map_cspace = np.rot90(np.rot90(map_cspace))
+
+    # have to flip x and y because arrays go by rows and columns but we want to go by x and y in our map
+    start = flip_xy(200, 170)
+    end = flip_xy(125, 255)
 
     path = dijkstra(map_cspace, start, end)
     waypoints = [map_to_world(x, y) for (x, y) in path]
 
-    filtered_waypoints = [i for j, i in enumerate(waypoints) if j % 15 == 0]
-    filtered_waypoints.append(waypoints[len(waypoints)-1])
-    filtered_waypoints = [(y, x) for (x, y) in filtered_waypoints]
+    # filtered_waypoints = [i for j, i in enumerate(waypoints) if j % 15 == 0]
+    # filtered_waypoints.append(waypoints[len(waypoints)-1])
+    # filtered_waypoints = [(y, x) for (x, y) in filtered_waypoints]
 
 
     np.save("../../maps/path.npy", waypoints)
@@ -256,12 +237,13 @@ if mode == 'autonomous':
     else:
         print("No valid path found")
     for (x, y) in path:
-        map_display[x, y] = 0.5  
-    
+        # map_display[x, y] = 0.5
+        map_cspace[x, y] = 0.5
+
     plt.figure(figsize=(6,6))
     plt.title("Path Visualization")
-    plt.imshow(map_display, cmap='gray', origin="lower")
-    
+    plt.imshow(map_cspace, cmap='gray', origin="upper")
+
     plt.show()
 
 state = 0 # use this to iterate through your path
@@ -452,10 +434,10 @@ while robot.step(timestep) != -1 and mode != 'planner':
         # euclidian distance
         # goal_pos = (-0.19, 0.125162, 0)
         # filtered_waypoints = waypoints[3::4]
-        # goal_pos = waypoints[state]
-        goal_pos = filtered_waypoints[state]
+        goal_pos = waypoints[state]
+        # goal_pos = filtered_waypoints[state]
         # print('WAYPOINTS', waypoints)
-        print('FILTERED WAYPOINTS', filtered_waypoints)
+        # print('FILTERED WAYPOINTS', filtered_waypoints)
         euc_dis = math.pow(goal_pos[0] - pose_x, 2)
         euc_dis += math.pow(goal_pos[1] - pose_y, 2)
         euc_dis = math.sqrt(euc_dis)
