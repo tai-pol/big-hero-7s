@@ -6,6 +6,10 @@ from matplotlib import pyplot as plt
 from scipy.signal import convolve2d # Uncomment if you want to use something else for finding the configuration space
 import matplotlib.transforms as transforms
 import heapq
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from lab5_joint import lab5_joint
 
 MAX_SPEED = 7.0  # [rad/s]
 MAX_SPEED_MS = 0.633 # [m/s]
@@ -246,7 +250,7 @@ if mode == 'autonomous':
     start = world_to_map(-8.736592, -4.648618)
     # start = world_to_map(gps.getValues()[0], gps.getValues()[1])
     # end = (100,123)
-    end = (300, 50) #flipped from map visualization
+    end = (200, 200) #flipped from map visualization
 
     path = dijkstra(map_cspace, start, end)
     waypoints = [map_to_world(x, y) for (x, y) in path]
@@ -278,7 +282,7 @@ if mode == 'picknplace':
     start_ws = [(3.7, 5.7)]
     end_ws = [(10.0, 9.3)]
     pass
-
+radius_threshold = 0.5 
 while robot.step(timestep) != -1 and mode != 'planner':
 
     ###################
@@ -503,6 +507,9 @@ while robot.step(timestep) != -1 and mode != 'planner':
 
         vL = res[0]
         vR = res[1]
+        if euc_dis <= radius_threshold:
+            state+=1
+            print("IN HERE BOI ITS GETTING USED")
         
         if state > len(waypoints)-1:
             state = len(waypoints)-1
