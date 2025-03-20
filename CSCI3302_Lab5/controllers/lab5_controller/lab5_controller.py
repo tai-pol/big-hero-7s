@@ -126,24 +126,19 @@ def dijkstra(map, start, end):
 
 def map_to_world(map_x, map_y):
     """ Converts map indices to Webots world coordinates (meters) """
-    # world_x = (map_x / 360) * 12 - 12
-    # world_y = (map_y / 360) * 12 - 12
-    world_x = map_x * (-12/360)
-    world_y = map_y * (-12/360)
-    return (world_x, world_y)
+    world_x = -12 + (map_x / 30)
+    world_y = 0 - (map_y / 30)
+    
+    return world_x, world_y
 
 def world_to_map(world_x, world_y):
-    # map_x = int(((world_x + 12)/12)* 360)
-    # map_y = int(((world_y + 12)/12)* 360)
-    map_x = int(round(world_x * (360/-12)))
-    map_y = int(round(world_y * (360/-12)))
-    return (map_x, map_y)
+    map_x = int((world_x + 12) * 30)
+    map_y = int(-world_y * 30)
+    
+    return map_x, map_y
 
-def flip_xy(ref_x, ref_y):
-    # actual_y = 360 - ref_y
-    # actual_x = ref_x
-    # return (actual_y, actual_x)
-    return (ref_y, ref_x)
+def flip_xy(orig_x, orig_y):
+    return (orig_y, orig_x)
 
 ###################
 #
@@ -160,14 +155,47 @@ if mode == 'planner':
     end = None # (x, y) in 360x360 map
 
     # Part 2.3: Implement A* or Dijkstra's Algorithm to find a path
-    def path_planner(map, start, end):
-        '''
-        :param map: A 2D numpy array of size 360x360 representing the world's cspace with 0 as free space and 1 as obstacle
-        :param start: A tuple of indices representing the start cell in the map
-        :param end: A tuple of indices representing the end cell in the map
-        :return: A list of tuples as a path from the given start to the given end in the given maze
-        '''
-        pass
+    # def path_planner(map, start, end):
+    #     '''
+    #     :param map: A 2D numpy array of size 360x360 representing the world's cspace with 0 as free space and 1 as obstacle
+    #     :param start: A tuple of indices representing the start cell in the map
+    #     :param end: A tuple of indices representing the end cell in the map
+    #     :return: A list of tuples as a path from the given start to the given end in the given maze
+    #     '''
+    #     rows, cols = map.shape
+    #     open_set = []
+    #     heapq.heappush(open_set, (0, start))  
+
+    #     came_from = {}
+    #     cost_so_far = {start: 0}
+
+    #     while open_set:
+    #         current_cost, current = heapq.heappop(open_set)
+
+    #         if current == end:
+    #             #reconstruct path
+    #             path = []
+    #             while current in came_from:
+    #                 path.append(current)
+    #                 current = came_from[current]
+    #             path.append(start)
+    #             path.reverse()
+    #             return path  
+                
+    #         for dx, dy in [(-1,0), (1,0), (0,-1), (0,1), (1, 1), (-1, -1), (-1, 1), (1, -1)]:
+    #             neighbor = (current[0] + dx, current[1] + dy)
+
+    #             if 0 <= neighbor[0] < rows and 0 <= neighbor[1] < cols and map[neighbor] == 0:
+    #                 new_cost = cost_so_far[current] + 1  
+
+    #                 if neighbor not in cost_so_far or new_cost < cost_so_far[neighbor]:
+    #                     cost_so_far[neighbor] = new_cost
+    #                     priority = new_cost  
+    #                     heapq.heappush(open_set, (priority, neighbor))
+    #                     came_from[neighbor] = current  
+
+    #     return []
+        # pass
 
     # Part 2.1: Load map (map.npy) from disk and visualize it
     filtered_map = np.load("../../maps/mapv1.npy")
@@ -210,44 +238,38 @@ if mode == 'autonomous':
     # Part 3.1: Load path from disk and visualize it
     waypoints = [] # Replace with code to load your path
     filtered_map = np.load("../../maps/mapv1.npy")
-    kernel = np.ones((17, 17)) 
+    kernel = np.ones((20, 20)) 
     map_cspace = convolve2d(filtered_map, kernel, mode='same', boundary='wrap')
     map_cspace = map_cspace > 0
-
-    # rotating and flipping map to match our coordinate system
-    map_cspace = np.fliplr(map_cspace)
-    map_cspace = np.rot90(np.rot90(map_cspace))
-
-    # have to flip x and y because arrays go by rows and columns but we want to go by x and y in our map
-    start = flip_xy(200, 170)
-    end = flip_xy(125, 255)
+    # start = (316,300)
+    # start = (200, 200)
+    start = world_to_map(-8.736592, -4.648618)
+    # start = world_to_map(gps.getValues()[0], gps.getValues()[1])
+    # end = (100,123)
+    end = (300, 50) #flipped from map visualization
 
     path = dijkstra(map_cspace, start, end)
     waypoints = [map_to_world(x, y) for (x, y) in path]
 
-    # filtered_waypoints = [i for j, i in enumerate(waypoints) if j % 15 == 0]
-    # filtered_waypoints.append(waypoints[len(waypoints)-1])
-    # filtered_waypoints = [(y, x) for (x, y) in filtered_waypoints]
-
-
     np.save("../../maps/path.npy", waypoints)
     map_display = map_cspace.copy()
+    map_display[10, 20] = 5
     if path:
         print("Path saved!")
     else:
         print("No valid path found")
     for (x, y) in path:
-        # map_display[x, y] = 0.5
-        map_cspace[x, y] = 0.5
-
+        map_display[x, y] = 0.5
+    
     plt.figure(figsize=(6,6))
     plt.title("Path Visualization")
-    plt.imshow(map_cspace, cmap='gray', origin="upper")
-
+    plt.imshow(np.fliplr(map_display), cmap='gray')
+    
     plt.show()
 
 state = 0 # use this to iterate through your path
 elapsed_time = 0
+forward_state = 0
 
 if mode == 'picknplace':
     # Part 4: Use the function calls from lab5_joints using the comments provided there
@@ -273,6 +295,7 @@ while robot.step(timestep) != -1 and mode != 'planner':
     n = compass.getValues()
     rad = -((math.atan2(n[0], n[2]))-1.5708)
     pose_theta = rad
+    world_theta = pose_theta + math.pi/2
 
     lidar_sensor_readings = lidar.getRangeImage()
     lidar_sensor_readings = lidar_sensor_readings[83:len(lidar_sensor_readings)-83]
@@ -396,8 +419,8 @@ while robot.step(timestep) != -1 and mode != 'planner':
             # global leftMotor, rightMotor, leftMax, rightMax
             
             # tuning variables r here
-            err_margin = .01
-            turn_speed = .2 # default value will change this
+            err_margin = .5
+            turn_speed = .07 # default value will change this
             min_turn_speed = .01
             max_turn_speed = .25
             portional_gain = .3
@@ -419,12 +442,32 @@ while robot.step(timestep) != -1 and mode != 'planner':
                 return (MAX_SPEED * turn_speed, -MAX_SPEED * turn_speed)
                 
             return None
-
-
-        # pose_x = gps.getValues()[0]
-        # pose_y = gps.getValues()[1]
-        # pose_theta = np.arctan2(compass.getValues()[0], compass.getValues()[1])
         
+        def reach_position(distance_to_goal, is_proportional=True) -> tuple:
+            """goes foward until the distance is within the error -> ruturns true is it has reached the goal"""
+            # global leftMotor, rightMotor, leftMax, rightMax
+            
+            # tuning variables r here
+            err_margin = .5
+            foward_speed = .1
+            min_foward_speed = .01
+            max_foward_speed = .2
+            
+            if is_proportional:
+                portional_gain = 5
+                foward_speed = abs(distance_to_goal * portional_gain)
+            
+            if foward_speed > max_foward_speed:
+                foward_speed = max_foward_speed
+                
+            if foward_speed < min_foward_speed:
+                foward_speed = min_foward_speed
+                
+            if not (distance_to_goal < err_margin and distance_to_goal > -err_margin):
+                return (MAX_SPEED * foward_speed, MAX_SPEED * foward_speed)
+
+            return None
+
         # get the times:
         elapsed_time += timestep / 1000.0
         delta_time = timestep / 1000.0
@@ -436,7 +479,8 @@ while robot.step(timestep) != -1 and mode != 'planner':
         # filtered_waypoints = waypoints[3::4]
         goal_pos = waypoints[state]
         # goal_pos = filtered_waypoints[state]
-        # print('WAYPOINTS', waypoints)
+        print('WAYPOINTS', waypoints)
+        print('velocities', vL, vR)
         # print('FILTERED WAYPOINTS', filtered_waypoints)
         euc_dis = math.pow(goal_pos[0] - pose_x, 2)
         euc_dis += math.pow(goal_pos[1] - pose_y, 2)
@@ -444,77 +488,26 @@ while robot.step(timestep) != -1 and mode != 'planner':
         
         # calculate the angle to goal
         ang_to_goal = math.atan2(goal_pos[1] - pose_y, goal_pos[0] - pose_x)
-        ang_to_goal = (ang_to_goal - pose_theta + math.pi) % (2 * math.pi) - math.pi
-        # heading_to_goal_heading = goal_pos[2] - pose_theta
-        # heading_to_goal_heading = (goal_pos[2] - pose_theta + math.pi) % (2 * math.pi) - math.pi
-
-        # if is_proportional_feedback_controller_state:
-            
-        # tuning vars:
-        forward_err = .01
-        rot_err = .01
-        forward_gain = 5
-        rot_gain = .1
-        
-        R_dis, L_dis = inverse_wheel_kinematics(euc_dis, ang_to_goal)
-        print('R AND L DISTANCE: ', R_dis, L_dis)
-        wheel_rot = R_dis - L_dis # right wheel minus left gives positive theta rot
-        
-        if not (wheel_rot < rot_err and wheel_rot > -rot_err):
-            if wheel_rot > 0:
-                res = (-wheel_rot * rot_gain, wheel_rot * rot_gain)
-            else:
-                res = (wheel_rot * rot_gain, -wheel_rot * rot_gain)
-            
-        else:
-            res = (R_dis * forward_gain, L_dis * forward_gain)
-            
-        # set bounds
-        if res[0] > .5:
-            # res[0] = .5
-            res = (.5, res[1])
-        if res[1] > .5:
-            # res[1] = .5
-            res = (res[0], .5)
-
-        if res[0] < .001 and res[1] < .001:
-            state += 1
-
-        # JUST MAKING THE CONTROLLER ALWAYS PROPORTIONAL
-        # else:
-        #     match state:
-        #         case 0:
-        #             res = turn_to_goal(ang_to_goal, is_proportional_controller)
-        #             if res is None:
-        #                 res = reach_position(euc_dis, is_proportional_controller)
-        #                 if res is None:
-        #                     state += 1
-        #                     res = (0, 0)
-                        
-        #         case 1:
-        #             res = turn_to_goal(heading_to_goal_heading, is_proportional_controller)
-        #             if res is None:
-        #                 res = (0, 0)
-        #                 state = 0
-        #                 index += 1
+        print('ANGLEASD ASF ', ang_to_goal)
+        print('GOALS', goal_pos)
+        ang_to_goal = (ang_to_goal - world_theta + math.pi) % (2 * math.pi) - math.pi
+ 
+        res = turn_to_goal(ang_to_goal, True)
+        if res is None:
+            res = reach_position(euc_dis, True)
+            if res is None:
+                state += 1
+                forward_state += 1
+                res = (0, 0)
                     
-        #         case _:
-        #             res = (0, 0)
-                    
-        # WAS HERE BEFORE
-        # leftMotor.setVelocity(res[0])
-        # rightMotor.setVelocity(res[1])
 
         vL = res[0]
         vR = res[1]
         
-        # exit condition here so that it ends
-        if state >= len(waypoints):
-            # leftMotor.setVelocity(0)
-            # rightMotor.setVelocity(0)
+        if state > len(waypoints)-1:
+            state = len(waypoints)-1
             vL = 0
             vR = 0
-            # exit(0)
         
         
         #############################################################
