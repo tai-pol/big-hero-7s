@@ -6,6 +6,7 @@ import ikpy.utils.plot as plot_utils
 import math
 
 
+
 # Initialize the robot
 robot = Robot()
 timestep = int(robot.getBasicTimeStep())
@@ -45,7 +46,7 @@ compass.enable(timestep)
 ################ v [Begin] Do not modify v ##################
 
 base_elements=["base_link", "base_link_Torso_joint", "Torso", "torso_lift_joint", "torso_lift_link", "torso_lift_link_TIAGo front arm_11367_joint", "TIAGo front arm_11367"]
-my_chain = Chain.from_urdf_file("tiago_urdf.urdf", base_elements=["base_link", "base_link_Torso_joint", "Torso", "torso_lift_joint", "torso_lift_link", "torso_lift_link_TIAGo front arm_11367_joint", "TIAGo front arm_11367"])
+my_chain = Chain.from_urdf_file("../lab5_joint/tiago_urdf.urdf", base_elements=["base_link", "base_link_Torso_joint", "Torso", "torso_lift_joint", "torso_lift_link", "torso_lift_link_TIAGo front arm_11367_joint", "TIAGo front arm_11367"])
 
 print(my_chain.links)
 
