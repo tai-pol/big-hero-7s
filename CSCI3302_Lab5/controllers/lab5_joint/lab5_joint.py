@@ -46,7 +46,7 @@ compass.enable(timestep)
 ################ v [Begin] Do not modify v ##################
 
 base_elements=["base_link", "base_link_Torso_joint", "Torso", "torso_lift_joint", "torso_lift_link", "torso_lift_link_TIAGo front arm_11367_joint", "TIAGo front arm_11367"]
-my_chain = Chain.from_urdf_file("../lab5_joint/tiago_urdf.urdf", base_elements=["base_link", "base_link_Torso_joint", "Torso", "torso_lift_joint", "torso_lift_link", "torso_lift_link_TIAGo front arm_11367_joint", "TIAGo front arm_11367"])
+my_chain = Chain.from_urdf_file("tiago_urdf.urdf", base_elements=["base_link", "base_link_Torso_joint", "Torso", "torso_lift_joint", "torso_lift_link", "torso_lift_link_TIAGo front arm_11367_joint", "TIAGo front arm_11367"])
 
 print(my_chain.links)
 
@@ -91,13 +91,13 @@ def rotate_y(x,y,z,theta):
     new_y = y*-np.sin(theta) + x*np.cos(theta)
     return [-new_x, new_y, new_z]
 
-def lookForTarget(recognized_objects):
+def lookForTarget(target_item, recognized_objects):
     if len(recognized_objects) > 0:
 
         for item in recognized_objects:
-            if target_item in str(item.get_model()):
+            if target_item in str(item.getModel()):
 
-                target = recognized_objects[0].get_position()
+                target = recognized_objects[0].getPosition()
                 dist = abs(target[2])
 
                 if dist < 5:
@@ -149,7 +149,7 @@ def calculateIk(offset_target,  orient=True, orientation_mode="Y", target_orient
     '''
 
     # Get the initial position of the motors
-    initial_position = [0,0,0,0] + [m.getPositionSensor().getValue() for m in motors] + [0,0,0,0]
+    initial_position = [0,0,0,0] + [m.getPositionSensor().getValue() for m in motors] + [0,0,0]
     
     # Calculate IK
     ikResults = my_chain.inverse_kinematics(offset_target, initial_position=initial_position,  target_orientation = [0,0,1], orientation_mode="Y")
@@ -178,7 +178,7 @@ def getTargetFromObject(recognized_objects):
     ''' Gets a target vector from a list of recognized objects '''
 
     # Get the first valid target
-    target = recognized_objects[0].get_position()
+    target = recognized_objects[0].getPosition()
 
     # Convert camera coordinates to IK/Robot coordinates
     # offset_target = [-(target[2])+0.22, -target[0]+0.08, (target[1])+0.97+0.2]
@@ -255,10 +255,28 @@ def openGrip():
 
 while robot.step(timestep) !=-1:
     # make sure your robot joints moves accordingly
-    ikResults = [0,0,0,0,0.07,0,-1.5,2.29,-1.8,1.1,-1.4,0,0,0]
-    # ikResults = [0,0,0,0,0.07,1.02,-1.5,2.29,-1.8,1.1,-1.4,0,0,0]
-    moveArmToTarget(ikResults)  
+    # ikResults = [0,0,0,0,0.07,0,-1.5,2.29,-1.8,1.1,-1.4,0,0,0]
+    # moveArmToTarget(ikResults)
 
+    objects = camera.getRecognitionObjects()
+    if objects:
+        print(f"Recognized {len(objects)} objects:")
+        for obj in objects:
+            print(f" - Model: {obj.getModel()}")
+            print(f" - Position: {obj.getPosition()}")
+    else:
+        print("No objects detected.")
+
+    recognized_objects = camera.getRecognitionObjects()
+            
+    if lookForTarget('orange', recognized_objects):
+        arm_target = getTargetFromObject(recognized_objects)
+        ikResults = calculateIk(arm_target)
         
-    ## Implement recognition of any object other than orange at the original location 
-    
+        if ikResults is not None:
+            # uncomment this line for actually reaching and grabbing the orange, just moving the arm to it right now
+            # reach_arm_results = reachArm(arm_target, None, ikResults, cutoff=0.00005)
+            moveArmToTarget(ikResults)
+
+        else:
+            print('IK calc failed')
