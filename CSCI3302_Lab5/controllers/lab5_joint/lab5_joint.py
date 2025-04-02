@@ -10,6 +10,7 @@ import math
 # Initialize the robot
 robot = Robot()
 timestep = int(robot.getBasicTimeStep())
+N_PARTS = 12
 
 #Consts
 MAX_SPEED = 7.0  # [rad/s]
@@ -31,6 +32,7 @@ target_item_list = ["orange"]
 
 
 vrb = True
+begun = True
 # Enable Camera
 camera = robot.getDevice('camera')
 camera.enable(timestep)
@@ -41,6 +43,9 @@ gps = robot.getDevice("gps")
 gps.enable(timestep)
 compass = robot.getDevice("compass")
 compass.enable(timestep)
+n = compass.getValues()
+rad = -((math.atan2(n[0], n[2]))-1.5708)
+pose_theta = rad
 
 ## fix file paths
 ################ v [Begin] Do not modify v ##################
@@ -53,6 +58,15 @@ print(my_chain.links)
 part_names = ("head_2_joint", "head_1_joint", "torso_lift_joint", "arm_1_joint",
             "arm_2_joint",  "arm_3_joint",  "arm_4_joint",      "arm_5_joint",
             "arm_6_joint",  "arm_7_joint",  "wheel_left_joint", "wheel_right_joint")
+
+# target_pos = (0.0, 0.0, 0.09, 0.07, 1.02, -3.16, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf')
+# robot_parts=[]
+
+# for i in range(N_PARTS):
+#     robot_parts.append(robot.getDevice(part_names[i]))
+#     robot_parts[i].setPosition(float(target_pos[i]))
+#     robot_parts[i].setVelocity(robot_parts[i].getMaxVelocity() / 2.0)
+
 
 for link_id in range(len(my_chain.links)):
 
@@ -90,6 +104,7 @@ def rotate_y(x,y,z,theta):
     new_z = z
     new_y = y*-np.sin(theta) + x*np.cos(theta)
     return [-new_x, new_y, new_z]
+    
 
 def lookForTarget(target_item, recognized_objects):
     if len(recognized_objects) > 0:
@@ -131,12 +146,13 @@ def moveArmToTarget(ikResults):
             robot.getDevice(my_chain.links[res].name).setPosition(ikResults[res])
             if vrb:
                 print("Setting {} to {}".format(my_chain.links[res].name, ikResults[res]))
+
 def world_to_robot(x,y,z, world_theta):
     robot_pose_x = gps.getValues()[0]
     robot_pose_y = gps.getValues()[1]
 
-    new_x = x * math.cos(world_theta) + y * math.sin(world_theta) +robot_pose_x
-    new_y = x * - math.sin(world_theta) + y * math.cos(world_theta) + robot_pose_y
+    new_x = (x - robot_pose_x) * math.cos(world_theta) + (y - robot_pose_y) * math.sin(world_theta)
+    new_y = (x - robot_pose_x) * -math.sin(world_theta) + (y - robot_pose_y)* math.cos(world_theta)
     
     return [new_x , new_y , z]
 
@@ -182,11 +198,12 @@ def calculateIk(offset_target,  orient=True, orientation_mode="Y", target_orient
         # my_chain.plot(ikResults, ax, target=ikTarget)
         # matplotlib.pyplot.show()
         
-def getTargetFromObject(recognized_objects):
+def getTargetFromObject(target):
     ''' Gets a target vector from a list of recognized objects '''
 
     # Get the first valid target
-    target = recognized_objects[0].getPosition()
+    # target = recognized_objects[0].getPosition()
+    # print('ORIGINAL TARGET', target[2], target[0], target[1])
 
     # Convert camera coordinates to IK/Robot coordinates
     # offset_target = [-(target[2])+0.22, -target[0]+0.08, (target[1])+0.97+0.2]
@@ -265,6 +282,32 @@ while robot.step(timestep) !=-1:
     # make sure your robot joints moves accordingly
     # ikResults = [0,0,0,0,0.07,0,-1.5,2.29,-1.8,1.1,-1.4,0,0,0]
     # moveArmToTarget(ikResults)
+
+    # if begun == True:
+    #     begun = False
+    #     for motor in motors:
+    #         motor.setPosition(motor.getMinPosition())
+
+    # objects = camera.getRecognitionObjects()
+    # if objects:
+    #     print(f"Recognized {len(objects)} objects:")
+    #     for obj in objects:
+    #         print("---------------------------")
+    #         print(f" - Model: {obj.getModel()}")
+    #         print("---------------------------")
+    # else:
+    #     print("No objects detected.")
+
+    # if lookForTarget('orange', objects):
+    #     arm_target = getTargetFromObject(objects)
+    #     print('ARM TARGET', arm_target)
+
+        # Rotate relative to the robot's local frame
+        # arm_target_rotated = rotate_y(*arm_target, pose_theta)
+
+        # print('ARM TARGET (local frame rotated):', arm_target_rotated)
+
+        # Calculate and move the arm
     pose_x = gps.getValues()[0]
     pose_y = gps.getValues()[1]
     
@@ -272,27 +315,25 @@ while robot.step(timestep) !=-1:
     rad = -((math.atan2(n[0], n[2]))-1.5708)
     pose_theta = rad
     world_theta = pose_theta + math.pi/2
+    print('WORLD THETA', world_theta)
+    print('POSE THETA', pose_theta)
     
-    coords = world_to_robot(-8.3, -6.1, .9, world_theta)
-    objects = camera.getRecognitionObjects()
-    if objects:
-        print(f"Recognized {len(objects)} objects:")
-        for obj in objects:
-            print(f" - Model: {obj.getModel()}")
-            print(f" - Position: {obj.getPosition()}")
-    else:
-        print("No objects detected.")
+    coords = world_to_robot(-7.50701, -6.04787, 0.889765, world_theta)
+    print('COORDS: ', coords)
+    # arm_target = getTargetFromObject(coords)
+    # coords = rotate_y(*coords, np.radians(90))
+    ikResults = calculateIk(coords)
+    print('IK RESULTS: ', ikResults)
+    
+    if ikResults is not None:
+        reach_arm_results = reachArm(coords, None, ikResults, cutoff=0.00005)
+        # moveArmToTarget(ikResults)
 
-    recognized_objects = camera.getRecognitionObjects()
-            
-    if lookForTarget('orange', recognized_objects):
-        arm_target = coords
-        ikResults = calculateIk(arm_target)
-        
-        if ikResults is not None:
-            # uncomment this line for actually reaching and grabbing the orange, just moving the arm to it right now
-            # reach_arm_results = reachArm(arm_target, None, ikResults, cutoff=0.00005)
-            moveArmToTarget(ikResults)
-
+        if reach_arm_results[0]:
+            print('arm reached target and now closing gripper')
+            closeGrip()
+            print('gripper closed')
         else:
-            print('IK calc failed')
+            print('failed to reach target')
+    else:
+        print('IK calc failed')
