@@ -131,6 +131,14 @@ def moveArmToTarget(ikResults):
             robot.getDevice(my_chain.links[res].name).setPosition(ikResults[res])
             if vrb:
                 print("Setting {} to {}".format(my_chain.links[res].name, ikResults[res]))
+def world_to_robot(x,y,z, world_theta):
+    robot_pose_x = gps.getValues()[0]
+    robot_pose_y = gps.getValues()[1]
+
+    new_x = x * math.cos(world_theta) + y * math.sin(world_theta) +robot_pose_x
+    new_y = x * - math.sin(world_theta) + y * math.cos(world_theta) + robot_pose_y
+    
+    return [new_x , new_y , z]
 
 def calculateIk(offset_target,  orient=True, orientation_mode="Y", target_orientation=[0,0,1]):
     '''
@@ -257,7 +265,15 @@ while robot.step(timestep) !=-1:
     # make sure your robot joints moves accordingly
     # ikResults = [0,0,0,0,0.07,0,-1.5,2.29,-1.8,1.1,-1.4,0,0,0]
     # moveArmToTarget(ikResults)
-
+    pose_x = gps.getValues()[0]
+    pose_y = gps.getValues()[1]
+    
+    n = compass.getValues()
+    rad = -((math.atan2(n[0], n[2]))-1.5708)
+    pose_theta = rad
+    world_theta = pose_theta + math.pi/2
+    
+    coords = world_to_robot(-8.3, -6.1, .9, world_theta)
     objects = camera.getRecognitionObjects()
     if objects:
         print(f"Recognized {len(objects)} objects:")
@@ -270,7 +286,7 @@ while robot.step(timestep) !=-1:
     recognized_objects = camera.getRecognitionObjects()
             
     if lookForTarget('orange', recognized_objects):
-        arm_target = getTargetFromObject(recognized_objects)
+        arm_target = coords
         ikResults = calculateIk(arm_target)
         
         if ikResults is not None:
