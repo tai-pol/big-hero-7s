@@ -6,10 +6,9 @@ from matplotlib import pyplot as plt
 from scipy.signal import convolve2d # Uncomment if you want to use something else for finding the configuration space
 import matplotlib.transforms as transforms
 import heapq
-import os
-import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from lab5_joint import lab5_joint
+from ikpy.chain import Chain
+from ikpy.link import OriginLink, URDFLink
+import ikpy.utils.plot as plot_utils
 
 MAX_SPEED = 7.0  # [rad/s]
 MAX_SPEED_MS = 0.633 # [m/s]
@@ -44,11 +43,43 @@ for i in range(N_PARTS):
     robot_parts[i].setPosition(float(target_pos[i]))
     robot_parts[i].setVelocity(robot_parts[i].getMaxVelocity() / 2.0)
 
+
+base_elements=["base_link", "base_link_Torso_joint", "Torso", "torso_lift_joint", "torso_lift_link", "torso_lift_link_TIAGo front arm_11367_joint", "TIAGo front arm_11367"]
+my_chain = Chain.from_urdf_file("tiago_urdf.urdf", base_elements=["base_link", "base_link_Torso_joint", "Torso", "torso_lift_joint", "torso_lift_link", "torso_lift_link_TIAGo front arm_11367_joint", "TIAGo front arm_11367"])
+
+for link_id in range(len(my_chain.links)):
+
+    # This is the actual link object
+    link = my_chain.links[link_id]
+    
+    # I've disabled "torso_lift_joint" manually as it can cause
+    # the TIAGO to become unstable.
+    if link.name not in part_names or  link.name =="torso_lift_joint":
+        print("Disabling {}".format(link.name))
+        my_chain.active_links_mask[link_id] = False
+        
+# Initialize the arm motors and encoders.
+motors = []
+for link in my_chain.links:
+    if link.name in part_names and link.name != "torso_lift_joint":
+        motor = robot.getDevice(link.name)
+
+        # Make sure to account for any motors that
+        # require a different maximum velocity!
+        if link.name == "torso_lift_joint":
+            motor.setVelocity(0.07)
+        else:
+            motor.setVelocity(1)
+            
+        position_sensor = motor.getPositionSensor()
+        position_sensor.enable(timestep)
+        motors.append(motor)
+
 # The Tiago robot has a couple more sensors than the e-Puck
 # Some of them are mentioned below. We will use its LiDAR for Lab 5
 
-range = robot.getDevice('range-finder')
-range.enable(timestep)
+rng = robot.getDevice('range-finder')
+rng.enable(timestep)
 camera = robot.getDevice('camera')
 camera.enable(timestep)
 camera.recognitionEnable(timestep)
@@ -89,8 +120,11 @@ lidar_offsets = lidar_offsets[83:len(lidar_offsets)-83] # Only keep lidar readin
 # Set the mode here. Please change to 'autonomous' before submission
 # mode = 'manual' # Part 1.1: manual mode
 # mode = 'planner'
-mode = 'autonomous'
-# mode = 'picknplace'
+# mode = 'autonomous'
+mode = 'picknplace'
+
+target_item_list = ["orange"]
+vrb = True
 
 def dijkstra(map, start, end):
     
@@ -242,7 +276,7 @@ if mode == 'autonomous':
     # Part 3.1: Load path from disk and visualize it
     waypoints = [] # Replace with code to load your path
     filtered_map = np.load("../../maps/mapv1.npy")
-    kernel = np.ones((20, 20)) 
+    kernel = np.ones((22, 22)) 
     map_cspace = convolve2d(filtered_map, kernel, mode='same', boundary='wrap')
     map_cspace = map_cspace > 0
     # start = (316,300)
@@ -250,7 +284,8 @@ if mode == 'autonomous':
     start = world_to_map(-8.736592, -4.648618)
     # start = world_to_map(gps.getValues()[0], gps.getValues()[1])
     # end = (100,123)
-    end = (200, 200) #flipped from map visualization
+    end = (204, 223)
+    # end = (300, 50) #flipped from map visualization
 
     path = dijkstra(map_cspace, start, end)
     waypoints = [map_to_world(x, y) for (x, y) in path]
@@ -267,7 +302,7 @@ if mode == 'autonomous':
     
     plt.figure(figsize=(6,6))
     plt.title("Path Visualization")
-    plt.imshow(np.fliplr(map_display), cmap='gray')
+    plt.imshow(map_display, cmap='gray')
     
     plt.show()
 
@@ -275,14 +310,190 @@ state = 0 # use this to iterate through your path
 elapsed_time = 0
 forward_state = 0
 
+def lookForTarget(target_item, recognized_objects):
+    if len(recognized_objects) > 0:
+
+        for item in recognized_objects:
+            if target_item in str(item.getModel()):
+
+                target = recognized_objects[0].getPosition()
+                dist = abs(target[2])
+
+                if dist < 5:
+                    return True
+
+def checkArmAtPosition(ikResults, cutoff=0.00005):
+    '''Checks if arm at position, given ikResults'''
+    
+    # Get the initial position of the motors
+    initial_position = [0,0,0,0] + [m.getPositionSensor().getValue() for m in motors] + [0,0,0,0]
+
+    # Calculate the arm
+    arm_error = 0
+    for item in range(14):
+        arm_error += (initial_position[item] - ikResults[item])**2
+    arm_error = math.sqrt(arm_error)
+
+    if arm_error < cutoff:
+        if vrb:
+            print("Arm at position.")
+        return True
+    return False
+
+def moveArmToTarget(ikResults):
+    '''Moves arm given ikResults'''
+    # Set the robot motors
+    print("IK RESULTS TYPE:", type(ikResults))  # Debugging
+    print("IK RESULTS VALUE:", ikResults)
+    for res in range(len(ikResults)):
+        if my_chain.links[res].name in part_names:
+            # This code was used to wait for the trunk, but now unnecessary.
+            # if abs(initial_position[2]-ikResults[2]) < 0.1 or res == 2:
+            robot.getDevice(my_chain.links[res].name).setPosition(ikResults[res])
+            if vrb:
+                print("Setting {} to {}".format(my_chain.links[res].name, ikResults[res]))
+
+def calculateIk(offset_target,  orient=True, orientation_mode="Y", target_orientation=[0,0,1]):
+    '''
+    This will calculate the iK given a target in robot coords
+    Parameters
+    ----------
+    param offset_target: a vector specifying the target position of the end effector
+    param orient: whether or not to orient, default True
+    param orientation_mode: either "X", "Y", or "Z", default "Y"
+    param target_orientation: the target orientation vector, default [0,0,1]
+
+    Returns
+    ----------
+    rtype: bool
+        returns: whether or not the arm is at the target
+    '''
+
+    # Get the initial position of the motors
+    initial_position = [0,0,0,0] + [m.getPositionSensor().getValue() for m in motors] + [0,0,0]
+    
+    # Calculate IK
+    ikResults = my_chain.inverse_kinematics(offset_target, initial_position=initial_position,  target_orientation = [0,0,1], orientation_mode="Y")
+
+    # Use FK to calculate squared_distance error
+    position = my_chain.forward_kinematics(ikResults)
+
+    # This is not currently used other than as a debug measure...
+    squared_distance = math.sqrt((position[0, 3] - offset_target[0])**2 + (position[1, 3] - offset_target[1])**2 + (position[2, 3] - offset_target[2])**2)
+    print("IK calculated with error - {}".format(squared_distance))
+
+    # Reset the ikTarget (deprec)
+    # ikTarget = offset_target
+    
+    return ikResults
+        
+def getTargetFromObject(recognized_objects):
+    ''' Gets a target vector from a list of recognized objects '''
+
+    # Get the first valid target
+    target = recognized_objects[0].getPosition()
+
+    # Convert camera coordinates to IK/Robot coordinates
+    offset_target = [-(target[2])+0.22, -target[0]+0.06, (target[1])+0.97+0.2]
+
+    return offset_target
+
+def reachArm(target, previous_target, ikResults, cutoff=0.00005):
+    '''
+    This code is used to reach the arm over an object and pick it up.
+    '''
+
+    # Calculate the error using the ikTarget
+    error = 0
+    ikTargetCopy = previous_target
+
+    # Make sure ikTarget is defined
+    if previous_target is None:
+        error = 100
+    else:
+        for item in range(3):
+            error += (target[item] - previous_target[item])**2
+        error = math.sqrt(error)
+
+    
+    # If error greater than margin
+    if error > 0.05:
+        print("Recalculating IK, error too high {}...".format(error))
+        ikResults = calculateIk(target)
+        ikTargetCopy = target
+        moveArmToTarget(ikResults) 
+
+    # Exit Condition
+    if checkArmAtPosition(ikResults, cutoff=cutoff):
+        if vrb:
+            print("NOW SWIPING")
+        return [True, ikTargetCopy, ikResults]
+    else:
+        if vrb:
+            print("ARM NOT AT POSITION")
+
+    # Return ikResults
+    return [False, ikTargetCopy, ikResults]
+
+def closeGrip():
+    robot.getDevice("gripper_right_finger_joint").setPosition(0.0)
+    robot.getDevice("gripper_left_finger_joint").setPosition(0.0)
+
+def openGrip():
+    robot.getDevice("gripper_right_finger_joint").setPosition(0.045)
+    robot.getDevice("gripper_left_finger_joint").setPosition(0.045)
+
+def rotate_y(x,y,z,theta):
+    new_x = x*np.cos(theta) + y*np.sin(theta)
+    new_z = z
+    new_y = y*-np.sin(theta) + x*np.cos(theta)
+    return [-new_x, new_y, new_z]
+
 if mode == 'picknplace':
     # Part 4: Use the function calls from lab5_joints using the comments provided there
     ## use path_planning to generate paths
     ## do not change start_ws and end_ws below
     start_ws = [(3.7, 5.7)]
     end_ws = [(10.0, 9.3)]
+
+    waypoints = [] # Replace with code to load your path
+    filtered_map = np.load("../../maps/mapv1.npy")
+    kernel = np.ones((22, 22)) 
+    map_cspace = convolve2d(filtered_map, kernel, mode='same', boundary='wrap')
+    map_cspace = map_cspace > 0
+    # start = (204, 223)
+    start = world_to_map(-5.389170, -7.199493) 
+
+
+    # end = world_to_map(-8.736592, -4.648618) // this is starting position of robot??
+    # end = world_to_map(-8.47522, -4.9)
+    # start = (116, 180)
+    # end = (116, 180)
+    end = world_to_map(-7.53053, -5.0713)
+    # end = (128, 163)
+    # end = (300, 50) #flipped from map visualization
+
+    path = dijkstra(map_cspace, start, end)
+    waypoints = [map_to_world(x, y) for (x, y) in path]
+
+    np.save("../../maps/path.npy", waypoints)
+    map_display = map_cspace.copy()
+    map_display[10, 20] = 5
+    if path:
+        print("Path saved!")
+    else:
+        print("No valid path found")
+    for (x, y) in path:
+        map_display[x, y] = 0.5
+    
+    plt.figure(figsize=(6,6))
+    plt.title("Path Visualization")
+    plt.imshow(map_display, cmap='gray')
+    
+    plt.show()
+    
     pass
-radius_threshold = 0.5 
+
 while robot.step(timestep) != -1 and mode != 'planner':
 
     ###################
@@ -481,9 +692,14 @@ while robot.step(timestep) != -1 and mode != 'planner':
         # euclidian distance
         # goal_pos = (-0.19, 0.125162, 0)
         # filtered_waypoints = waypoints[3::4]
+        if len(waypoints) == 0:
+            vL = 0
+            vR = 0
+            continue
+
         goal_pos = waypoints[state]
         # goal_pos = filtered_waypoints[state]
-        print('WAYPOINTS', waypoints)
+        # print('WAYPOINTS', waypoints)
         print('velocities', vL, vR)
         # print('FILTERED WAYPOINTS', filtered_waypoints)
         euc_dis = math.pow(goal_pos[0] - pose_x, 2)
@@ -494,27 +710,68 @@ while robot.step(timestep) != -1 and mode != 'planner':
         ang_to_goal = math.atan2(goal_pos[1] - pose_y, goal_pos[0] - pose_x)
         print('ANGLEASD ASF ', ang_to_goal)
         print('GOALS', goal_pos)
+        print('WAYPOINTS LENGTH', len(waypoints))
         ang_to_goal = (ang_to_goal - world_theta + math.pi) % (2 * math.pi) - math.pi
  
-        res = turn_to_goal(ang_to_goal, True)
-        if res is None:
-            res = reach_position(euc_dis, True)
-            if res is None:
+        vels = turn_to_goal(ang_to_goal, True)
+        if vels is None:
+            vels = reach_position(euc_dis, True)
+            if vels is None:
                 state += 1
                 forward_state += 1
-                res = (0, 0)
-                    
+                vels = (0, 0)
 
-        vL = res[0]
-        vR = res[1]
-        if euc_dis <= radius_threshold:
-            state+=1
-            print("IN HERE BOI ITS GETTING USED")
-        
         if state > len(waypoints)-1:
             state = len(waypoints)-1
-            vL = 0
-            vR = 0
+            vels = (0, 0)      
+
+        if mode == 'picknplace':
+            if state == len(waypoints)-1:
+                vels = (0, 0)
+                'MADE INSIDE THE IF STATEMENT'
+                objects = camera.getRecognitionObjects()
+                if objects:
+                    print(f"Recognized {len(objects)} objects:")
+                    for obj in objects:
+                        print(f" - Model: {obj.getModel()}")
+                        print(f" - Position: {obj.getPosition()}")
+                        print(f" - Size: {obj.getSize()}")
+                        print(f" - Rotation: {obj.getOrientation()}")
+                        print("---------------------------")
+                else:
+                    print("No objects detected.")
+
+                # print('RECOGNIZED OBJECT: ', recognized_objects[0].getPosition())
+                if lookForTarget('orange', objects):
+                    vels = (0, 0)
+                    arm_target = getTargetFromObject(objects)
+
+                    ikResults = calculateIk(arm_target)
+                    
+                    # arm_rotated_for_world = rotate_y(*arm_target, -math.pi/2)
+                    # ikResults = calculateIk(arm_rotated_for_world)
+
+                    if ikResults is not None:
+                        # turn_to_goal(math.pi/2)
+                        ang_to_goal = 90
+                        reach_arm_results = reachArm(arm_target, None, ikResults, cutoff=0.00005)
+                        # moveArmToTarget(ikResults)
+
+                        # if reach_arm_results[0]:
+                        #     print('arm reached target and now closing gripper')
+                        #     closeGrip()
+                        #     print('gripper closed')
+                        # else:
+                        #     print('failed to reach target')
+                    else:
+                        print('IK calc failed')
+                else:
+                    vels = (0.15 * -MAX_SPEED, 0.15 * MAX_SPEED)   
+
+        vL = vels[0]
+        vR = vels[1]
+        
+        
         
         
         #############################################################
