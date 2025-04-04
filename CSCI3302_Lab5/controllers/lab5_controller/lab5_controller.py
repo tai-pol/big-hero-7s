@@ -21,6 +21,15 @@ LIDAR_ANGLE_BINS = 667
 LIDAR_SENSOR_MAX_RANGE = 2.75 # Meters
 LIDAR_ANGLE_RANGE = math.radians(240)
 
+
+
+ikCalculated = False
+# moveArmRan = False
+objectSpotted = False
+objectReached = False
+objectGrabbed = False
+retracing = False
+
 ##### vvv [Begin] Do Not Modify vvv #####
 
 # create the Robot instance.
@@ -35,7 +44,7 @@ part_names = ("head_2_joint", "head_1_joint", "torso_lift_joint", "arm_1_joint",
 
 # All motors except the wheels are controlled by position control. The wheels
 # are controlled by a velocity controller. We therefore set their position to infinite.
-target_pos = (0.0, 0.0, 0.09, 0.07, 1.02, -3.16, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf')
+target_pos = (-0.2, 0.0, 0.09, 0.07, 1.02, -3.16, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf')
 robot_parts=[]
 
 for i in range(N_PARTS):
@@ -449,6 +458,24 @@ def rotate_y(x,y,z,theta):
     new_y = y*-np.sin(theta) + x*np.cos(theta)
     return [-new_x, new_y, new_z]
 
+def world_to_robot(x,y,z, robot_pose_x, robot_pose_y, world_theta):
+    # robot_pose_x = gps.getValues()[0]
+    # robot_pose_y = gps.getValues()[1]
+
+    object_with_offset_y = y + 0.15 # 0.05 is radius of the orange
+    object_with_offset_x = x - 0.05
+
+    robot_pose_with_offset_x = robot_pose_x + 0.2
+    robot_pose_with_offset_y = robot_pose_y + 0.2
+
+    print('world to robot x-coord ', robot_pose_x)
+    print('world to robot y-coord ', robot_pose_y)
+
+    new_x = (object_with_offset_x - robot_pose_with_offset_x) * math.cos(world_theta) + (object_with_offset_y - robot_pose_with_offset_y) * math.sin(world_theta)
+    new_y = (object_with_offset_x - robot_pose_with_offset_x) * -math.sin(world_theta) + (object_with_offset_y - robot_pose_with_offset_y)* math.cos(world_theta)
+    
+    return [new_x , new_y , z-0.05]
+
 if mode == 'picknplace':
     # Part 4: Use the function calls from lab5_joints using the comments provided there
     ## use path_planning to generate paths
@@ -717,18 +744,35 @@ while robot.step(timestep) != -1 and mode != 'planner':
         if vels is None:
             vels = reach_position(euc_dis, True)
             if vels is None:
-                state += 1
-                forward_state += 1
-                vels = (0, 0)
+                if mode == 'picknplace':
+                    if objectGrabbed == True:
+                        state -= 25
+                        objectGrabbed = False
+                        retracing = True
+                    elif retracing == True:
+                        state -= 1
+                    elif state < len(waypoints)-1:
+                        state += 1
+                    forward_state += 1
+                    vels = (0, 0) 
 
-        if state > len(waypoints)-1:
-            state = len(waypoints)-1
-            vels = (0, 0)      
+
+        if objectGrabbed:
+            target_pos = (-0.2, 0.0, 0.09, 0.07, 1.02, -3.16, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf')
+            robot_parts=[]
+
+            for i in range(N_PARTS):
+                robot_parts.append(robot.getDevice(part_names[i]))
+                robot_parts[i].setPosition(float(target_pos[i]))
+                robot_parts[i].setVelocity(robot_parts[i].getMaxVelocity() / 2.0)
 
         if mode == 'picknplace':
-            if state == len(waypoints)-1:
+            # if objectGrabbed == True:
+            #     if state > 0:
+            #         state -= 1
+
+            if state == len(waypoints)-1 and objectGrabbed == False:
                 vels = (0, 0)
-                'MADE INSIDE THE IF STATEMENT'
                 objects = camera.getRecognitionObjects()
                 if objects:
                     print(f"Recognized {len(objects)} objects:")
@@ -743,28 +787,66 @@ while robot.step(timestep) != -1 and mode != 'planner':
 
                 # print('RECOGNIZED OBJECT: ', recognized_objects[0].getPosition())
                 if lookForTarget('orange', objects):
+                    objectSpotted = True
                     vels = (0, 0)
-                    arm_target = getTargetFromObject(objects)
 
-                    ikResults = calculateIk(arm_target)
+                if objectSpotted == True:
+                    coords = world_to_robot(-7.50701, -6.04787, 0.889765, pose_x, pose_y, world_theta)
+                    print('COORDS: ', coords)
+                    # arm_target = getTargetFromObject(coords)
+                    # coords = rotate_y(*coords, np.radians(90))
+                    if ikCalculated == False:
+                        ikResults = calculateIk(coords)
+                        print('IK RESULTS: ', ikResults)
+                        ikCalculated = True
                     
-                    # arm_rotated_for_world = rotate_y(*arm_target, -math.pi/2)
-                    # ikResults = calculateIk(arm_rotated_for_world)
-
                     if ikResults is not None:
-                        # turn_to_goal(math.pi/2)
-                        ang_to_goal = 90
-                        reach_arm_results = reachArm(arm_target, None, ikResults, cutoff=0.00005)
+                    # if moveArmRan == False:
+                        openGrip()
+                        reach_arm_results = reachArm(coords, None, ikResults, cutoff=0.05)
+                        # reachArmRan = True
                         # moveArmToTarget(ikResults)
+                        # moveArmRan = True
 
-                        # if reach_arm_results[0]:
-                        #     print('arm reached target and now closing gripper')
-                        #     closeGrip()
-                        #     print('gripper closed')
                         # else:
-                        #     print('failed to reach target')
+                        if reach_arm_results[0] and objectReached == False:
+                            objectReached = True
+                            grip_close_start_time = robot.getTime()
+                            print('arm reached target and now closing gripper')
+                            closeGrip()
+                            
+                        if objectReached and robot.getTime() - grip_close_start_time >= 3:
+                            objectGrabbed = True
+                            print('gripper closed')
+                        else:
+                            print('failed to reach target')
                     else:
                         print('IK calc failed')
+
+
+
+
+                    # arm_target = getTargetFromObject(objects)
+
+                    # ikResults = calculateIk(arm_target)
+                    
+                    # # arm_rotated_for_world = rotate_y(*arm_target, -math.pi/2)
+                    # # ikResults = calculateIk(arm_rotated_for_world)
+
+                    # if ikResults is not None:
+                    #     # turn_to_goal(math.pi/2)
+                    #     ang_to_goal = 90
+                    #     reach_arm_results = reachArm(arm_target, None, ikResults, cutoff=0.00005)
+                    #     # moveArmToTarget(ikResults)
+
+                    #     # if reach_arm_results[0]:
+                    #     #     print('arm reached target and now closing gripper')
+                    #     #     closeGrip()
+                    #     #     print('gripper closed')
+                    #     # else:
+                    #     #     print('failed to reach target')
+                    # else:
+                    #     print('IK calc failed')
                 else:
                     vels = (0.15 * -MAX_SPEED, 0.15 * MAX_SPEED)   
 
