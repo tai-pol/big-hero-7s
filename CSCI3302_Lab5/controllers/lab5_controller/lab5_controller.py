@@ -46,13 +46,16 @@ part_names = ("head_2_joint", "head_1_joint", "torso_lift_joint", "arm_1_joint",
 # are controlled by a velocity controller. We therefore set their position to infinite.
 target_pos = (-0.2, 0.0, 0.09, 0.07, 1.02, -3.16, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf')
 robot_parts=[]
-
+# robot.getDevice("gripper_right_finger_joint").setPosition(0.045)
+# robot.getDevice("gripper_left_finger_joint").setPosition(0.045)
 for i in range(N_PARTS):
     robot_parts.append(robot.getDevice(part_names[i]))
     robot_parts[i].setPosition(float(target_pos[i]))
+   
     robot_parts[i].setVelocity(robot_parts[i].getMaxVelocity() / 2.0)
 
 
+print(f"robot_parts length: {len(robot_parts)}") 
 base_elements=["base_link", "base_link_Torso_joint", "Torso", "torso_lift_joint", "torso_lift_link", "torso_lift_link_TIAGo front arm_11367_joint", "TIAGo front arm_11367"]
 my_chain = Chain.from_urdf_file("tiago_urdf.urdf", base_elements=["base_link", "base_link_Torso_joint", "Torso", "torso_lift_joint", "torso_lift_link", "torso_lift_link_TIAGo front arm_11367_joint", "TIAGo front arm_11367"])
 
@@ -187,6 +190,36 @@ def world_to_map(world_x, world_y):
 def flip_xy(orig_x, orig_y):
     return (orig_y, orig_x)
 
+def set_arm_to_default_pose():
+   
+    print("arm to default pose")
+
+    # Define the default joint positions
+    default_positions = {
+        "arm_1_joint": 0.0700,
+        "arm_2_joint": 1.0200,
+        "arm_3_joint": -3.1600,
+        "arm_4_joint": 1.2700,
+        "arm_5_joint": 1.3200,
+        "arm_6_joint": 0.0000,
+        "arm_7_joint": 1.4100
+    }
+
+
+    for joint_name, position in default_positions.items():
+        motor = robot.getDevice(joint_name)
+        if motor:
+            motor.setPosition(position)
+            print(f"Setting {joint_name} to {position:.4f} rad ({math.degrees(position):.1f}°)")
+
+    positioning_timer = 0
+    while robot.step(timestep) != -1 and positioning_timer < 100:
+        positioning_timer += 1
+
+        # robot_parts[MOTOR_LEFT].setVelocity(0)
+        # robot_parts[MOTOR_RIGHT].setVelocity(0)
+
+    print("arm reset complete")
 ###################
 #
 # Planner
@@ -331,7 +364,7 @@ def lookForTarget(target_item, recognized_objects):
                 if dist < 5:
                     return True
 
-def checkArmAtPosition(ikResults, cutoff=0.00005):
+def checkArmAtPosition(ikResults, cutoff=0.01):
     '''Checks if arm at position, given ikResults'''
     
     # Get the initial position of the motors
@@ -342,12 +375,15 @@ def checkArmAtPosition(ikResults, cutoff=0.00005):
     for item in range(14):
         arm_error += (initial_position[item] - ikResults[item])**2
     arm_error = math.sqrt(arm_error)
-
-    if arm_error < cutoff:
+    print(f'ARM ERRRROR: {arm_error} -----------------------')
+    print(f'BOOOOOL: {arm_error < 0.07}-------------------------')
+    if arm_error < 0.07:
         if vrb:
             print("Arm at position.")
+        print("RETURNINNNNNG TRUE HELP")
         return True
     return False
+
 
 def moveArmToTarget(ikResults):
     '''Moves arm given ikResults'''
@@ -358,6 +394,9 @@ def moveArmToTarget(ikResults):
         if my_chain.links[res].name in part_names:
             # This code was used to wait for the trunk, but now unnecessary.
             # if abs(initial_position[2]-ikResults[2]) < 0.1 or res == 2:
+            current_pos = robot.getDevice(my_chain.links[res].name).getPositionSensor().getValue()
+            desired_pos = ikResults[res]
+            print(f"Joint {my_chain.links[res].name}: Desired = {desired_pos:.4f} rad, Current = {current_pos:.4f} rad")
             robot.getDevice(my_chain.links[res].name).setPosition(ikResults[res])
             if vrb:
                 print("Setting {} to {}".format(my_chain.links[res].name, ikResults[res]))
@@ -383,7 +422,9 @@ def calculateIk(offset_target,  orient=True, orientation_mode="Y", target_orient
     
     # Calculate IK
     ikResults = my_chain.inverse_kinematics(offset_target, initial_position=initial_position,  target_orientation = [0,0,1], orientation_mode="Y")
-
+    print("Desired IK positions:")
+    for i, joint in enumerate(my_chain.links):
+        print(f"{joint.name}: Desired = {ikResults[i]:.4f} rad")
     # Use FK to calculate squared_distance error
     position = my_chain.forward_kinematics(ikResults)
 
@@ -428,12 +469,14 @@ def reachArm(target, previous_target, ikResults, cutoff=0.00005):
     # If error greater than margin
     if error > 0.05:
         print("Recalculating IK, error too high {}...".format(error))
+
         ikResults = calculateIk(target)
         ikTargetCopy = target
         moveArmToTarget(ikResults) 
 
     # Exit Condition
-    if checkArmAtPosition(ikResults, cutoff=cutoff):
+    if checkArmAtPosition(ikResults):
+        
         if vrb:
             print("NOW SWIPING")
         return [True, ikTargetCopy, ikResults]
@@ -475,6 +518,7 @@ def world_to_robot(x,y,z, robot_pose_x, robot_pose_y, world_theta):
     new_y = (object_with_offset_x - robot_pose_with_offset_x) * -math.sin(world_theta) + (object_with_offset_y - robot_pose_with_offset_y)* math.cos(world_theta)
     
     return [new_x , new_y , z-0.05]
+
 
 if mode == 'picknplace':
     # Part 4: Use the function calls from lab5_joints using the comments provided there
@@ -759,12 +803,24 @@ while robot.step(timestep) != -1 and mode != 'planner':
 
         if objectGrabbed:
             target_pos = (-0.2, 0.0, 0.09, 0.07, 1.02, -3.16, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf')
+            
             robot_parts=[]
+            print("RESETTING ARM JOINTS")
+            
+            # for i in range(10):
+            #     robot.step(timestep)
+            closeGrip()
+            
 
-            for i in range(N_PARTS):
-                robot_parts.append(robot.getDevice(part_names[i]))
-                robot_parts[i].setPosition(float(target_pos[i]))
-                robot_parts[i].setVelocity(robot_parts[i].getMaxVelocity() / 2.0)
+            for i in range(10):
+                robot.step(timestep)
+                
+            set_arm_to_default_pose()
+            # for i in range(N_PARTS):
+                # robot_parts.append(robot.getDevice(part_names[i]))
+                # robot_parts[i].setPosition(float(target_pos[i]))
+                # robot_parts[i].setVelocity(robot_parts[i].getMaxVelocity() / 2.0)
+
 
         if mode == 'picknplace':
             # if objectGrabbed == True:
@@ -792,7 +848,7 @@ while robot.step(timestep) != -1 and mode != 'planner':
 
                 if objectSpotted == True:
                     coords = world_to_robot(-7.50701, -6.04787, 0.889765, pose_x, pose_y, world_theta)
-                    print('COORDS: ', coords)
+                    print('OBJECT COORDS: ', coords)
                     # arm_target = getTargetFromObject(coords)
                     # coords = rotate_y(*coords, np.radians(90))
                     if ikCalculated == False:
@@ -802,8 +858,10 @@ while robot.step(timestep) != -1 and mode != 'planner':
                     
                     if ikResults is not None:
                     # if moveArmRan == False:
-                        openGrip()
-                        reach_arm_results = reachArm(coords, None, ikResults, cutoff=0.05)
+                        openGrip() 
+                        print("Opening")
+                        reach_arm_results = reachArm(coords, None, ikResults, cutoff=0.0005)
+                        print(f'reach arm result: {reach_arm_results[0]}')
                         # reachArmRan = True
                         # moveArmToTarget(ikResults)
                         # moveArmRan = True
@@ -814,6 +872,8 @@ while robot.step(timestep) != -1 and mode != 'planner':
                             grip_close_start_time = robot.getTime()
                             print('arm reached target and now closing gripper')
                             closeGrip()
+                            for i in range(30):
+                                robot.step(timestep)
                             
                         if objectReached and robot.getTime() - grip_close_start_time >= 3:
                             objectGrabbed = True
@@ -822,9 +882,6 @@ while robot.step(timestep) != -1 and mode != 'planner':
                             print('failed to reach target')
                     else:
                         print('IK calc failed')
-
-
-
 
                     # arm_target = getTargetFromObject(objects)
 
