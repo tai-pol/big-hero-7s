@@ -774,12 +774,11 @@ while robot.step(timestep) != -1 and mode != 'planner':
                         if reach_arm_results[0] and objectReached == False:
                             objectReached = True
                             grip_close_start_time = robot.getTime()
-                            print('arm reached target and now closing gripper')
+                            print('arm reached target and now opening gripper')
                             openGrip()
                             
                         if objectReached and robot.getTime() - grip_close_start_time >= 3:
-                            objectGrabbed = True
-                            print('gripper closed')
+                            print('gripper opened')
                         else:
                             print('failed to reach target')
                     else:
