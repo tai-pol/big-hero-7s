@@ -21,10 +21,8 @@ LIDAR_ANGLE_BINS = 667
 LIDAR_SENSOR_MAX_RANGE = 2.75 # Meters
 LIDAR_ANGLE_RANGE = math.radians(240)
 
-
-
+# states for picknplace
 ikCalculated = False
-# moveArmRan = False
 objectSpotted = False
 objectReached = False
 objectGrabbed = False
@@ -44,18 +42,15 @@ part_names = ("head_2_joint", "head_1_joint", "torso_lift_joint", "arm_1_joint",
 
 # All motors except the wheels are controlled by position control. The wheels
 # are controlled by a velocity controller. We therefore set their position to infinite.
-target_pos = (-0.2, 0.0, 0.09, 0.07, 1.02, -3.16, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf')
+target_pos = (-0.4, 0.0, 0.09, 0.07, 1.02, -3.16, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf')
 robot_parts=[]
-# robot.getDevice("gripper_right_finger_joint").setPosition(0.045)
-# robot.getDevice("gripper_left_finger_joint").setPosition(0.045)
+
 for i in range(N_PARTS):
     robot_parts.append(robot.getDevice(part_names[i]))
     robot_parts[i].setPosition(float(target_pos[i]))
-   
     robot_parts[i].setVelocity(robot_parts[i].getMaxVelocity() / 2.0)
 
 
-print(f"robot_parts length: {len(robot_parts)}") 
 base_elements=["base_link", "base_link_Torso_joint", "Torso", "torso_lift_joint", "torso_lift_link", "torso_lift_link_TIAGo front arm_11367_joint", "TIAGo front arm_11367"]
 my_chain = Chain.from_urdf_file("tiago_urdf.urdf", base_elements=["base_link", "base_link_Torso_joint", "Torso", "torso_lift_joint", "torso_lift_link", "torso_lift_link_TIAGo front arm_11367_joint", "TIAGo front arm_11367"])
 
@@ -190,36 +185,6 @@ def world_to_map(world_x, world_y):
 def flip_xy(orig_x, orig_y):
     return (orig_y, orig_x)
 
-def set_arm_to_default_pose():
-   
-    print("arm to default pose")
-
-    # Define the default joint positions
-    default_positions = {
-        "arm_1_joint": 0.0700,
-        "arm_2_joint": 1.0200,
-        "arm_3_joint": -3.1600,
-        "arm_4_joint": 1.2700,
-        "arm_5_joint": 1.3200,
-        "arm_6_joint": 0.0000,
-        "arm_7_joint": 1.4100
-    }
-
-
-    for joint_name, position in default_positions.items():
-        motor = robot.getDevice(joint_name)
-        if motor:
-            motor.setPosition(position)
-            print(f"Setting {joint_name} to {position:.4f} rad ({math.degrees(position):.1f}°)")
-
-    positioning_timer = 0
-    while robot.step(timestep) != -1 and positioning_timer < 100:
-        positioning_timer += 1
-
-        # robot_parts[MOTOR_LEFT].setVelocity(0)
-        # robot_parts[MOTOR_RIGHT].setVelocity(0)
-
-    print("arm reset complete")
 ###################
 #
 # Planner
@@ -235,54 +200,11 @@ if mode == 'planner':
     end = None # (x, y) in 360x360 map
 
     # Part 2.3: Implement A* or Dijkstra's Algorithm to find a path
-    # def path_planner(map, start, end):
-    #     '''
-    #     :param map: A 2D numpy array of size 360x360 representing the world's cspace with 0 as free space and 1 as obstacle
-    #     :param start: A tuple of indices representing the start cell in the map
-    #     :param end: A tuple of indices representing the end cell in the map
-    #     :return: A list of tuples as a path from the given start to the given end in the given maze
-    #     '''
-    #     rows, cols = map.shape
-    #     open_set = []
-    #     heapq.heappush(open_set, (0, start))  
-
-    #     came_from = {}
-    #     cost_so_far = {start: 0}
-
-    #     while open_set:
-    #         current_cost, current = heapq.heappop(open_set)
-
-    #         if current == end:
-    #             #reconstruct path
-    #             path = []
-    #             while current in came_from:
-    #                 path.append(current)
-    #                 current = came_from[current]
-    #             path.append(start)
-    #             path.reverse()
-    #             return path  
-                
-    #         for dx, dy in [(-1,0), (1,0), (0,-1), (0,1), (1, 1), (-1, -1), (-1, 1), (1, -1)]:
-    #             neighbor = (current[0] + dx, current[1] + dy)
-
-    #             if 0 <= neighbor[0] < rows and 0 <= neighbor[1] < cols and map[neighbor] == 0:
-    #                 new_cost = cost_so_far[current] + 1  
-
-    #                 if neighbor not in cost_so_far or new_cost < cost_so_far[neighbor]:
-    #                     cost_so_far[neighbor] = new_cost
-    #                     priority = new_cost  
-    #                     heapq.heappush(open_set, (priority, neighbor))
-    #                     came_from[neighbor] = current  
-
-    #     return []
-        # pass
+    # implemented above on line 136
 
     # Part 2.1: Load map (map.npy) from disk and visualize it
     filtered_map = np.load("../../maps/mapv1.npy")
     plt.imshow(filtered_map, cmap='gray', origin="lower")
-    # plt.imshow(np.fliplr(filtered_map), cmap='gray', origin="upper")
-    # plt.xticks(rotation=90)
-    # plt.yticks(rotation=90)
     
     # plt.show()
     
@@ -321,13 +243,9 @@ if mode == 'autonomous':
     kernel = np.ones((22, 22)) 
     map_cspace = convolve2d(filtered_map, kernel, mode='same', boundary='wrap')
     map_cspace = map_cspace > 0
-    # start = (316,300)
-    # start = (200, 200)
+
     start = world_to_map(-8.736592, -4.648618)
-    # start = world_to_map(gps.getValues()[0], gps.getValues()[1])
-    # end = (100,123)
     end = (204, 223)
-    # end = (300, 50) #flipped from map visualization
 
     path = dijkstra(map_cspace, start, end)
     waypoints = [map_to_world(x, y) for (x, y) in path]
@@ -364,6 +282,7 @@ def lookForTarget(target_item, recognized_objects):
                 if dist < 5:
                     return True
 
+# def checkArmAtPosition(ikResults, cutoff=0.00005):
 def checkArmAtPosition(ikResults, cutoff=0.01):
     '''Checks if arm at position, given ikResults'''
     
@@ -375,15 +294,12 @@ def checkArmAtPosition(ikResults, cutoff=0.01):
     for item in range(14):
         arm_error += (initial_position[item] - ikResults[item])**2
     arm_error = math.sqrt(arm_error)
-    print(f'ARM ERRRROR: {arm_error} -----------------------')
-    print(f'BOOOOOL: {arm_error < 0.07}-------------------------')
+
     if arm_error < 0.07:
         if vrb:
             print("Arm at position.")
-        print("RETURNINNNNNG TRUE HELP")
         return True
     return False
-
 
 def moveArmToTarget(ikResults):
     '''Moves arm given ikResults'''
@@ -394,9 +310,6 @@ def moveArmToTarget(ikResults):
         if my_chain.links[res].name in part_names:
             # This code was used to wait for the trunk, but now unnecessary.
             # if abs(initial_position[2]-ikResults[2]) < 0.1 or res == 2:
-            current_pos = robot.getDevice(my_chain.links[res].name).getPositionSensor().getValue()
-            desired_pos = ikResults[res]
-            print(f"Joint {my_chain.links[res].name}: Desired = {desired_pos:.4f} rad, Current = {current_pos:.4f} rad")
             robot.getDevice(my_chain.links[res].name).setPosition(ikResults[res])
             if vrb:
                 print("Setting {} to {}".format(my_chain.links[res].name, ikResults[res]))
@@ -422,9 +335,7 @@ def calculateIk(offset_target,  orient=True, orientation_mode="Y", target_orient
     
     # Calculate IK
     ikResults = my_chain.inverse_kinematics(offset_target, initial_position=initial_position,  target_orientation = [0,0,1], orientation_mode="Y")
-    print("Desired IK positions:")
-    for i, joint in enumerate(my_chain.links):
-        print(f"{joint.name}: Desired = {ikResults[i]:.4f} rad")
+
     # Use FK to calculate squared_distance error
     position = my_chain.forward_kinematics(ikResults)
 
@@ -469,14 +380,12 @@ def reachArm(target, previous_target, ikResults, cutoff=0.00005):
     # If error greater than margin
     if error > 0.05:
         print("Recalculating IK, error too high {}...".format(error))
-
         ikResults = calculateIk(target)
         ikTargetCopy = target
         moveArmToTarget(ikResults) 
 
     # Exit Condition
-    if checkArmAtPosition(ikResults):
-        
+    if checkArmAtPosition(ikResults, cutoff=cutoff):
         if vrb:
             print("NOW SWIPING")
         return [True, ikTargetCopy, ikResults]
@@ -502,14 +411,12 @@ def rotate_y(x,y,z,theta):
     return [-new_x, new_y, new_z]
 
 def world_to_robot(x,y,z, robot_pose_x, robot_pose_y, world_theta):
-    # robot_pose_x = gps.getValues()[0]
-    # robot_pose_y = gps.getValues()[1]
 
-    object_with_offset_y = y + 0.15 # 0.05 is radius of the orange
-    object_with_offset_x = x - 0.05
+    object_with_offset_y = y - 0.2
+    object_with_offset_x = x - 0.1
 
-    robot_pose_with_offset_x = robot_pose_x + 0.2
-    robot_pose_with_offset_y = robot_pose_y + 0.2
+    robot_pose_with_offset_x = robot_pose_x - 0.3
+    robot_pose_with_offset_y = robot_pose_y - 0.07
 
     print('world to robot x-coord ', robot_pose_x)
     print('world to robot y-coord ', robot_pose_y)
@@ -519,33 +426,31 @@ def world_to_robot(x,y,z, robot_pose_x, robot_pose_y, world_theta):
     
     return [new_x , new_y , z-0.05]
 
-
 if mode == 'picknplace':
     # Part 4: Use the function calls from lab5_joints using the comments provided there
     ## use path_planning to generate paths
     ## do not change start_ws and end_ws below
+
+    # note: we did not change the start_ws and end_ws below, but we are calculating our path with the "start" and "end" variables below
     start_ws = [(3.7, 5.7)]
     end_ws = [(10.0, 9.3)]
+
+    start = world_to_map(-7.32797, -5.47866)
+    end = (287, 133) # kitchen table
+
+    state = 25 # to skip over the waypoints that are directly within the robot's body
 
     waypoints = [] # Replace with code to load your path
     filtered_map = np.load("../../maps/mapv1.npy")
     kernel = np.ones((22, 22)) 
     map_cspace = convolve2d(filtered_map, kernel, mode='same', boundary='wrap')
     map_cspace = map_cspace > 0
-    # start = (204, 223)
-    start = world_to_map(-5.389170, -7.199493) 
-
-
-    # end = world_to_map(-8.736592, -4.648618) // this is starting position of robot??
-    # end = world_to_map(-8.47522, -4.9)
-    # start = (116, 180)
-    # end = (116, 180)
-    end = world_to_map(-7.53053, -5.0713)
-    # end = (128, 163)
-    # end = (300, 50) #flipped from map visualization
 
     path = dijkstra(map_cspace, start, end)
     waypoints = [map_to_world(x, y) for (x, y) in path]
+
+    if 25 < len(waypoints):
+        state = 25 # to skip over the waypoints that are directly within the robot's body
 
     np.save("../../maps/path.npy", waypoints)
     map_display = map_cspace.copy()
@@ -623,13 +528,10 @@ while robot.step(timestep) != -1 and mode != 'planner':
                 
                 color = (grey_val*256**2+grey_val*256+grey_val)*255
                 display.setColor(int(color))
-                # display.setColor((map[360-abs(int(wx*30))][abs(int(wy*30))]*256**2+map[360-abs(int(wx*30))][abs(int(wy*30))]*256+map[360-abs(int(wx*30))][abs(int(wy*30))])*255)
                 display.drawPixel(360-abs(int(wx*30)),abs(int(wy*30)))
             except:
                 pass
                 
-            # print((360-abs(int(wx*30)),abs(int(wy*30))))
-            # print(map[360-abs(int(wx*30))][abs(int(wy*30))]) 
             
 
     # Draw the robot's current pose on the 360x360 display
@@ -662,7 +564,6 @@ while robot.step(timestep) != -1 and mode != 'planner':
         elif key == ord('S'):
             # Part 1.4: Filter map and save to filesystem
             filtered_map = np.where(map_data > .8, 1, 0)
-            # print(filtered_map.shape)
             np.save("../../maps/mapv2.npy", filtered_map)
             np.save("../../maps/maprawv2.npy", map_data)
             print("Map file saved")
@@ -678,16 +579,10 @@ while robot.step(timestep) != -1 and mode != 'planner':
     else: # not manual mode
         # Part 3.2: Feedback controller
         #STEP 1: Calculate the error
-        # rho = 0
-        # alpha = 0
 
         #STEP 2: Controller
-        # dX = 0
-        # dTheta = 0
 
         #STEP 3: Compute wheelspeeds
-        # vL = 0
-        # vR = 0
 
         def inverse_wheel_kinematics(distance, delta_theta, delta_time=timestep / 1000.0, axle_diameter=AXLE_LENGTH):
             """takes in the amount to travel then gives the rotations we need"""
@@ -759,20 +654,14 @@ while robot.step(timestep) != -1 and mode != 'planner':
         delta_time = timestep / 1000.0
         
         # TODO: controller / calculations
-        
-        # euclidian distance
-        # goal_pos = (-0.19, 0.125162, 0)
-        # filtered_waypoints = waypoints[3::4]
+ 
         if len(waypoints) == 0:
             vL = 0
             vR = 0
             continue
 
         goal_pos = waypoints[state]
-        # goal_pos = filtered_waypoints[state]
-        # print('WAYPOINTS', waypoints)
         print('velocities', vL, vR)
-        # print('FILTERED WAYPOINTS', filtered_waypoints)
         euc_dis = math.pow(goal_pos[0] - pose_x, 2)
         euc_dis += math.pow(goal_pos[1] - pose_y, 2)
         euc_dis = math.sqrt(euc_dis)
@@ -790,12 +679,13 @@ while robot.step(timestep) != -1 and mode != 'planner':
             if vels is None:
                 if mode == 'picknplace':
                     if objectGrabbed == True:
-                        state -= 25
+                        state -= 25 # to skip over the waypoints that are directly within the robot body's radius
                         objectGrabbed = False
                         retracing = True
                     elif retracing == True:
-                        state -= 1
-                    elif state < len(waypoints)-1:
+                        if state > 0:
+                            state -= 1
+                    elif state < len(waypoints)-1 and not retracing:
                         state += 1
                     forward_state += 1
                     vels = (0, 0) 
@@ -803,30 +693,14 @@ while robot.step(timestep) != -1 and mode != 'planner':
 
         if objectGrabbed:
             target_pos = (-0.2, 0.0, 0.09, 0.07, 1.02, -3.16, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf')
-            
             robot_parts=[]
-            print("RESETTING ARM JOINTS")
-            
-            # for i in range(10):
-            #     robot.step(timestep)
-            closeGrip()
-            
 
-            for i in range(10):
-                robot.step(timestep)
-                
-            set_arm_to_default_pose()
-            # for i in range(N_PARTS):
-                # robot_parts.append(robot.getDevice(part_names[i]))
-                # robot_parts[i].setPosition(float(target_pos[i]))
-                # robot_parts[i].setVelocity(robot_parts[i].getMaxVelocity() / 2.0)
-
+            for i in range(N_PARTS):
+                robot_parts.append(robot.getDevice(part_names[i]))
+                robot_parts[i].setPosition(float(target_pos[i]))
+                robot_parts[i].setVelocity(robot_parts[i].getMaxVelocity() / 2.0)
 
         if mode == 'picknplace':
-            # if objectGrabbed == True:
-            #     if state > 0:
-            #         state -= 1
-
             if state == len(waypoints)-1 and objectGrabbed == False:
                 vels = (0, 0)
                 objects = camera.getRecognitionObjects()
@@ -834,46 +708,32 @@ while robot.step(timestep) != -1 and mode != 'planner':
                     print(f"Recognized {len(objects)} objects:")
                     for obj in objects:
                         print(f" - Model: {obj.getModel()}")
-                        print(f" - Position: {obj.getPosition()}")
-                        print(f" - Size: {obj.getSize()}")
-                        print(f" - Rotation: {obj.getOrientation()}")
                         print("---------------------------")
                 else:
                     print("No objects detected.")
 
-                # print('RECOGNIZED OBJECT: ', recognized_objects[0].getPosition())
                 if lookForTarget('orange', objects):
                     objectSpotted = True
                     vels = (0, 0)
 
                 if objectSpotted == True:
-                    coords = world_to_robot(-7.50701, -6.04787, 0.889765, pose_x, pose_y, world_theta)
-                    print('OBJECT COORDS: ', coords)
-                    # arm_target = getTargetFromObject(coords)
-                    # coords = rotate_y(*coords, np.radians(90))
+                    coords = world_to_robot(-2.22186, -3.98843, 0.809765, pose_x, pose_y, world_theta)
+                    print('COORDS: ', coords)
                     if ikCalculated == False:
                         ikResults = calculateIk(coords)
                         print('IK RESULTS: ', ikResults)
                         ikCalculated = True
                     
                     if ikResults is not None:
-                    # if moveArmRan == False:
-                        openGrip() 
-                        print("Opening")
-                        reach_arm_results = reachArm(coords, None, ikResults, cutoff=0.0005)
-                        print(f'reach arm result: {reach_arm_results[0]}')
-                        # reachArmRan = True
-                        # moveArmToTarget(ikResults)
-                        # moveArmRan = True
+                        openGrip()
 
-                        # else:
+                        reach_arm_results = reachArm(coords, None, ikResults, cutoff=0.0005)
+
                         if reach_arm_results[0] and objectReached == False:
                             objectReached = True
                             grip_close_start_time = robot.getTime()
                             print('arm reached target and now closing gripper')
                             closeGrip()
-                            for i in range(30):
-                                robot.step(timestep)
                             
                         if objectReached and robot.getTime() - grip_close_start_time >= 3:
                             objectGrabbed = True
@@ -882,30 +742,48 @@ while robot.step(timestep) != -1 and mode != 'planner':
                             print('failed to reach target')
                     else:
                         print('IK calc failed')
-
-                    # arm_target = getTargetFromObject(objects)
-
-                    # ikResults = calculateIk(arm_target)
-                    
-                    # # arm_rotated_for_world = rotate_y(*arm_target, -math.pi/2)
-                    # # ikResults = calculateIk(arm_rotated_for_world)
-
-                    # if ikResults is not None:
-                    #     # turn_to_goal(math.pi/2)
-                    #     ang_to_goal = 90
-                    #     reach_arm_results = reachArm(arm_target, None, ikResults, cutoff=0.00005)
-                    #     # moveArmToTarget(ikResults)
-
-                    #     # if reach_arm_results[0]:
-                    #     #     print('arm reached target and now closing gripper')
-                    #     #     closeGrip()
-                    #     #     print('gripper closed')
-                    #     # else:
-                    #     #     print('failed to reach target')
-                    # else:
-                    #     print('IK calc failed')
                 else:
-                    vels = (0.15 * -MAX_SPEED, 0.15 * MAX_SPEED)   
+                    vels = (0.15 * -MAX_SPEED, 0.15 * MAX_SPEED)
+
+            if state == 0 and retracing:
+                vels = (0, 0)
+                objects = camera.getRecognitionObjects()
+                if objects:
+                    print(f"Recognized {len(objects)} objects:")
+                    for obj in objects:
+                        print(f" - Model: {obj.getModel()}")
+                        print("---------------------------")
+                else:
+                    print("No objects detected.")
+
+                if lookForTarget('fruit bowl', objects):
+                    objectSpotted = True
+                    vels = (0, 0)
+
+                if objectSpotted == True:
+                    coords = world_to_robot(-6.9663, -6.12869, 0.839857, pose_x, pose_y, world_theta)
+                    print('COORDS: ', coords)
+                    if ikCalculated == False:
+                        ikResults = calculateIk(coords)
+                        print('IK RESULTS: ', ikResults)
+                        ikCalculated = True
+                    
+                    if ikResults is not None:
+                        reach_arm_results = reachArm(coords, None, ikResults, cutoff=0.0005)
+
+                        if reach_arm_results[0] and objectReached == False:
+                            objectReached = True
+                            grip_close_start_time = robot.getTime()
+                            print('arm reached target and now closing gripper')
+                            openGrip()
+                            
+                        if objectReached and robot.getTime() - grip_close_start_time >= 3:
+                            objectGrabbed = True
+                            print('gripper closed')
+                        else:
+                            print('failed to reach target')
+                    else:
+                        print('IK calc failed')
 
         vL = vels[0]
         vR = vels[1]
@@ -920,7 +798,6 @@ while robot.step(timestep) != -1 and mode != 'planner':
         print("Current pose: [%5f, %5f, %5f]" % (pose_x, pose_y, pose_theta))
         print("euc distance: ", euc_dis)
         print("angle_to_goal: ", ang_to_goal)
-        # print("heading_to_goal: ", heading_to_goal_heading)
         print(state)
 
         # Normalize wheelspeed
