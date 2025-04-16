@@ -1,10 +1,22 @@
 """grocery controller."""
 
 # Apr 1, 2025
-
-from controller import Robot
+from controller import Robot, Motor, Camera, RangeFinder, Lidar, Keyboard # type: ignore 
 import math
 import numpy as np
+from matplotlib import pyplot as plt
+from scipy.signal import convolve2d # Uncomment if you want to use something else for finding the configuration space
+import matplotlib.transforms as transforms
+import heapq
+from ikpy.chain import Chain
+from ikpy.link import OriginLink, URDFLink
+import ikpy.utils.plot as plot_utils
+
+
+# our files
+import map_with_lidar as lid
+
+
 
 #Initialization
 print("=== Initializing Grocery Shopper...")
@@ -90,8 +102,26 @@ map = None
 
 gripper_status="closed"
 
+
+# important variables
+lidar_map = np.zeros(shape=[360,360])
+
+
 # Main Loop
 while robot.step(timestep) != -1:
+    
+    # get default mappings for testing
+    pose_x = gps.getValues()[0]
+    pose_y = gps.getValues()[1]
+    
+    n = compass.getValues()
+    rad = -((math.atan2(n[0], n[2]))-1.5708)
+    pose_theta = rad
+
+    lidar_sensor_readings = lidar.getRangeImage()
+    lidar_sensor_readings = lidar_sensor_readings[83:len(lidar_sensor_readings)-83]
+    
+    lid.make_lidar_map(pose_x, pose_y, pose_theta, lidar_map, lidar_sensor_readings, display)
     
     
     robot_parts["wheel_left_joint"].setVelocity(vL)
