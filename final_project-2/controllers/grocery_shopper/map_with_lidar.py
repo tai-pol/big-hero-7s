@@ -13,7 +13,7 @@ lidar_offsets = lidar_offsets[83:len(lidar_offsets)-83] # Only keep lidar readin
 
 def make_lidar_map(pose_x, pose_y, pose_theta, curr_map, lidar_sensor_readings, display):
     
-    print(pose_x, pose_y, pose_theta, lidar_sensor_readings)
+    print(pose_x, pose_y, pose_theta, lidar_sensor_readings[333-80])
     # print(lidar_sensor_readings)
     for i, rho in enumerate(lidar_sensor_readings):
         alpha = lidar_offsets[i]
@@ -44,14 +44,14 @@ def make_lidar_map(pose_x, pose_y, pose_theta, curr_map, lidar_sensor_readings, 
             
             #try catch for bounds just in case
             try:
-                grey_val = min(curr_map[359-abs(int(wx*30))][abs(int(wy*30))] + .005, 1.0)
-                curr_map[359-abs(int(wx*30))][abs(int(wy*30))] = grey_val
+                grey_val = min(curr_map[359-abs(int(wx))][abs(int(wy))] + .005, 1.0)
+                curr_map[359-abs(int(wx))][abs(int(wy))] = grey_val
                 # You will eventually REPLACE the following lines with a more robust version of the map
                 # with a grayscale drawing containing more levels than just 0 and 1.
                 
                 color = (grey_val*256**2+grey_val*256+grey_val)*255
                 display.setColor(int(color))
-                display.drawPixel(360-abs(int(wx*30)),abs(int(wy*30)))
+                display.drawPixel(360-abs(int(wx)),abs(int(wy)))
             except:
                 pass
                 
@@ -59,4 +59,4 @@ def make_lidar_map(pose_x, pose_y, pose_theta, curr_map, lidar_sensor_readings, 
 
     # Draw the robot's current pose on the 360x360 display
     display.setColor(int(0xFF0000))
-    display.drawPixel(360-abs(int(pose_x*30)), abs(int(pose_y*30)))
+    display.drawPixel(360-abs(int(pose_x)), abs(int(pose_y)))

@@ -1,4 +1,4 @@
-#VRML_SIM R2022b utf8
+#VRML_SIM R2025a utf8
 
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackground.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
@@ -18,8 +18,8 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2022b/project
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.020808250416867347 -0.9974694231891894 0.06798357534886508 5.687902171238918
-  position -17.88162597868509 0.09624639306693239 13.2857444526246
+  orientation 0.0007046610453116828 0.997882299601343 0.065041675832859 6.256993747278823
+  position -7.69098819640399 0.02931458596817843 0.09485656023255773
 }
 TexturedBackground {
   texture "empty_office"
@@ -69,7 +69,7 @@ Floor {
     type "dark strip"
   }
 }
-DEF beer_bottles Transform {
+DEF beer_bottles Pose {
   children [
     Group {
       children [
@@ -143,7 +143,7 @@ DEF beer_bottles Transform {
           model "beer bottle"
           boundingObject Group {
             children [
-              Transform {
+              Pose {
                 translation 0 0 0.18
                 children [
                   Shape {
@@ -154,7 +154,7 @@ DEF beer_bottles Transform {
                   }
                 ]
               }
-              Transform {
+              Pose {
                 translation 0 0 0.071
                 children [
                   Shape {
@@ -194,7 +194,7 @@ DEF beer_bottles Transform {
     }
   ]
 }
-DEF beer_bottles Transform {
+DEF beer_bottles Pose {
   translation 5.98 0 0
   children [
     Group {
@@ -269,7 +269,7 @@ DEF beer_bottles Transform {
           model "beer bottle"
           boundingObject Group {
             children [
-              Transform {
+              Pose {
                 translation 0 0 0.18
                 children [
                   Shape {
@@ -280,7 +280,7 @@ DEF beer_bottles Transform {
                   }
                 ]
               }
-              Transform {
+              Pose {
                 translation 0 0 0.071
                 children [
                   Shape {
@@ -320,7 +320,7 @@ DEF beer_bottles Transform {
     }
   ]
 }
-DEF beer_bottles Transform {
+DEF beer_bottles Pose {
   translation 0 3.91 0
   children [
     Group {
@@ -395,7 +395,7 @@ DEF beer_bottles Transform {
           model "beer bottle"
           boundingObject Group {
             children [
-              Transform {
+              Pose {
                 translation 0 0 0.18
                 children [
                   Shape {
@@ -406,7 +406,7 @@ DEF beer_bottles Transform {
                   }
                 ]
               }
-              Transform {
+              Pose {
                 translation 0 0 0.071
                 children [
                   Shape {
@@ -446,7 +446,7 @@ DEF beer_bottles Transform {
     }
   ]
 }
-DEF beer_bottles Transform {
+DEF beer_bottles Pose {
   translation 5.06 3.91 -0.52
   children [
     Group {
@@ -521,7 +521,7 @@ DEF beer_bottles Transform {
           model "beer bottle"
           boundingObject Group {
             children [
-              Transform {
+              Pose {
                 translation 0 0 0.18
                 children [
                   Shape {
@@ -532,7 +532,7 @@ DEF beer_bottles Transform {
                   }
                 ]
               }
-              Transform {
+              Pose {
                 translation 0 0 0.071
                 children [
                   Shape {
@@ -572,7 +572,7 @@ DEF beer_bottles Transform {
     }
   ]
 }
-DEF beer_bottles Transform {
+DEF beer_bottles Pose {
   translation 5.06 7.51 -0.52
   children [
     Group {
@@ -647,7 +647,7 @@ DEF beer_bottles Transform {
           model "beer bottle"
           boundingObject Group {
             children [
-              Transform {
+              Pose {
                 translation 0 0 0.18
                 children [
                   Shape {
@@ -658,7 +658,7 @@ DEF beer_bottles Transform {
                   }
                 ]
               }
-              Transform {
+              Pose {
                 translation 0 0 0.071
                 children [
                   Shape {
@@ -698,7 +698,7 @@ DEF beer_bottles Transform {
     }
   ]
 }
-DEF beer_bottles Transform {
+DEF beer_bottles Pose {
   translation 10.56 7.51 0.05
   children [
     Group {
@@ -773,7 +773,7 @@ DEF beer_bottles Transform {
           model "beer bottle"
           boundingObject Group {
             children [
-              Transform {
+              Pose {
                 translation 0 0 0.18
                 children [
                   Shape {
@@ -784,7 +784,7 @@ DEF beer_bottles Transform {
                   }
                 ]
               }
-              Transform {
+              Pose {
                 translation 0 0 0.071
                 children [
                   Shape {
@@ -824,7 +824,7 @@ DEF beer_bottles Transform {
     }
   ]
 }
-DEF beer_bottles Transform {
+DEF beer_bottles Pose {
   translation 12.3 -7 0.04
   children [
     Group {
@@ -899,7 +899,7 @@ DEF beer_bottles Transform {
           model "beer bottle"
           boundingObject Group {
             children [
-              Transform {
+              Pose {
                 translation 0 0 0.18
                 children [
                   Shape {
@@ -910,7 +910,7 @@ DEF beer_bottles Transform {
                   }
                 ]
               }
-              Transform {
+              Pose {
                 translation 0 0 0.071
                 children [
                   Shape {
@@ -950,7 +950,7 @@ DEF beer_bottles Transform {
     }
   ]
 }
-DEF beer_bottles Transform {
+DEF beer_bottles Pose {
   translation 10 -7 0.44
   children [
     Group {
@@ -1025,7 +1025,7 @@ DEF beer_bottles Transform {
           model "beer bottle"
           boundingObject Group {
             children [
-              Transform {
+              Pose {
                 translation 0 0 0.18
                 children [
                   Shape {
@@ -1036,7 +1036,7 @@ DEF beer_bottles Transform {
                   }
                 ]
               }
-              Transform {
+              Pose {
                 translation 0 0 0.071
                 children [
                   Shape {
@@ -1077,101 +1077,6 @@ DEF beer_bottles Transform {
   ]
 }
 TiagoSteel {
-  hidden position_0_0 0.005189891652787194
-  hidden position_0_1 0.005200775630389818
-  hidden position_0_2 -0.009691759019815187
-  hidden position_0_3 -0.008402924118678707
-  hidden position_0_4 -0.00483747613415041
-  hidden position_0_5 -0.003518447694963097
-  hidden linearVelocity_0 3.9452324765602365e-05 -2.8272874252210152e-05 -7.730470985973319e-07
-  hidden angularVelocity_0 8.049891379089296e-05 0.00014960053016156312 -5.6551890615673745e-06
-  hidden position_1_0 0.1923609514842846
-  hidden translation_2 0 0 0.7923609514842845
-  hidden position_2_0 4.5346777941369945e-07
-  hidden linearVelocity_2 0.0007488069072070927 -0.00041728808646183176 0.0321265092093053
-  hidden angularVelocity_2 8.058213752466381e-05 0.00014975227900402476 -5.654294528000406e-06
-  hidden position_3_0 0.07000025417611004
-  hidden translation_4 0.025099999950025417 0.19399990002543427 -0.171
-  hidden rotation_4 0 0 1 0.00900025417612379
-  hidden position_4_0 1.0199977358048355
-  hidden linearVelocity_4 0.0007546787169882203 -0.0004212302441802291 0.032105785596123336
-  hidden angularVelocity_4 8.058523978630312e-05 0.00014975808127430803 -5.652229901949071e-06
-  hidden rotation_5 0.7842814692437419 -0.4386918982468034 0.43869350965508236 1.811430790802141
-  hidden position_5_0 -3.1599999004243022
-  hidden linearVelocity_5 0.0007537396209605646 -0.00042084421802359904 0.03210262809031957
-  hidden angularVelocity_5 8.058751363327943e-05 0.00014976486133852593 -5.6516638947683725e-06
-  hidden rotation_6 0.5808543247667757 -0.570268422972807 -0.580863305055364 2.104899848537577
-  hidden position_6_0 1.2700078296786983
-  hidden linearVelocity_6 0.0007778535423977755 -0.0004341996104223359 0.0320925662850488
-  hidden angularVelocity_6 8.059045243782385e-05 0.0001497696458690285 -5.6510308726516825e-06
-  hidden rotation_7 -0.9777976502990888 -0.14817633122175952 -0.1481739853524904 1.5932502277843321
-  hidden position_7_0 1.3200000005075248
-  hidden linearVelocity_7 0.0008001983920921666 -0.0004463057468760534 0.03209038073914546
-  hidden angularVelocity_7 8.059126425374055e-05 0.00014977214216853996 -5.652707197034147e-06
-  hidden rotation_8 -0.5226930450703626 -0.6734849323961073 0.5226949650326495 1.9561798597104063
-  hidden position_8_0 -1.3321454748194128e-06
-  hidden linearVelocity_8 0.000822106559576973 -0.00045769904420973857 0.03210085602532923
-  hidden angularVelocity_8 8.05918758364397e-05 0.00014977330393706325 -5.6536913424937185e-06
-  hidden rotation_9 -0.5773497564473183 -0.5773505255595213 -0.5773505255616961 2.094400769114719
-  hidden position_9_0 1.4100000004995552
-  hidden linearVelocity_9 0.0008338435059017076 -0.0004638119483585759 0.032106225195544034
-  hidden angularVelocity_9 8.059182742101858e-05 0.00014977373023635033 -5.654052350302229e-06
-  hidden rotation_10 0.7059610440323079 0.05688072804121228 0.705962879396867 3.0279579486461126
-  hidden linearVelocity_10 0.0008420170009200768 -0.00046806888899444027 0.032109964274172974
-  hidden angularVelocity_10 8.059200327695833e-05 0.00014977408925370182 -5.654353698395593e-06
-  hidden position_12_0 0.01318367306127297
-  hidden position_12_1 0.011330519058497947
-  hidden translation_33 -0.01318367306127297 0 0
-  hidden linearVelocity_33 -0.008574832748623706 -0.01810003972432678 0.04710744400948344
-  hidden angularVelocity_33 8.060722048781214e-05 0.00014976596160311365 -5.6543657156821544e-06
-  hidden translation_34 0.011330519058497947 0 0
-  hidden linearVelocity_34 0.01029304194701137 0.017157779671916822 0.017118191833397734
-  hidden angularVelocity_34 8.057679154252376e-05 0.00014978224479180276 -5.654363091630335e-06
-  hidden rotation_35 0 0 1 4.539354506649926e-07
-  hidden position_35_0 -1.9753763957908177e-07
-  hidden linearVelocity_35 0.0007882303764780716 -0.00043917781533459407 0.03210800129180533
-  hidden angularVelocity_35 8.066996445370537e-05 0.00014970441401829975 -1.0941371388881565e-06
-  hidden rotation_36 0.9999999999999903 9.876845699207367e-08 -9.876881978954025e-08 1.5708000000000097
-  hidden linearVelocity_36 0.0008003999479985467 -0.0004457700481271235 0.03210329042724068
-  hidden angularVelocity_36 8.067001034185492e-05 0.0001497044609831019 -1.0941778395301505e-06
-  hidden translation_47 7.746206698300284e-08 -4.244054591876628e-08 0.02999594812161284
-  hidden rotation_47 -0.47152469642271094 -0.87948326133897 0.06460382100185265 4.1972439949978784e-11
-  hidden linearVelocity_47 2.544664514874948e-05 -2.079554965462055e-05 -2.334670798120237e-06
-  hidden angularVelocity_47 8.049891313900347e-05 0.0001496005302140947 -5.65518901472584e-06
-  hidden rotation_51 0.9999932663186778 0.0025949246456906903 -0.0025949341773986476 1.5708067337039935
-  hidden linearVelocity_51 1.3082615866210278e-05 -1.4738876543058931e-05 -1.79501260447552e-05
-  hidden angularVelocity_51 8.050064761933443e-05 0.00014928306797504522 -5.658455649663971e-06
-  hidden rotation_52 0.9999932380461521 0.002600366541060233 -0.0026003760927574247 1.5708067619767097
-  hidden linearVelocity_52 1.598686061062448e-05 -1.5061493142248247e-05 1.390141540140932e-05
-  hidden angularVelocity_52 8.050169166529734e-05 0.00014984431421535263 -5.65256283113757e-06
-  hidden rotation_53 0 0 -1 0.009691759019804572
-  hidden position_53_0 0.019613267456879416
-  hidden linearVelocity_53 5.120520461417785e-06 -8.554719934288152e-06 -3.340719218472174e-05
-  hidden angularVelocity_53 6.425849763668446e-05 0.00015853770548851073 -0.0008519166043889242
-  hidden rotation_54 -0.999903837994542 0.009805969033535398 0.009806005052937048 1.5708961666291545
-  hidden linearVelocity_54 2.577979534932849e-06 3.937090046438145e-06 -3.0658533167932205e-05
-  hidden angularVelocity_54 6.37607220315631e-05 0.00010969158260623077 -0.0008524220930781907
-  hidden rotation_55 0 0 -1 0.008402924118660436
-  hidden position_55_0 0.020707239711872875
-  hidden linearVelocity_55 6.573446711642883e-06 -8.893107682767154e-06 -1.7772230378278746e-05
-  hidden angularVelocity_55 6.540445260623144e-05 0.00015790248742656772 -0.0007921992578653592
-  hidden rotation_56 -0.9998928125245325 0.010352841986116303 0.010352880014298163 1.5709071932202283
-  hidden linearVelocity_56 4.0102319138361776e-06 2.8270862021382905e-06 -1.53391496194443e-05
-  hidden angularVelocity_56 6.548596767785416e-05 0.00016704407894253177 -0.0007921042941074203
-  hidden rotation_57 0 0 -1 0.004837476134162829
-  hidden position_57_0 0.019566701184909017
-  hidden linearVelocity_57 6.035257975577539e-06 -7.952069104203914e-06 1.5499168212136418e-05
-  hidden angularVelocity_57 6.968756836522741e-05 0.00015553704726272032 -0.0005690026281467153
-  hidden rotation_58 -0.9999042940362127 0.009782690450011566 0.009782726383906048 1.5708957105437316
-  hidden linearVelocity_58 3.4207094743343044e-06 8.736846620552876e-07 1.7247057325343097e-05
-  hidden angularVelocity_58 6.961640088551728e-05 0.0001422187476634293 -0.0005691416761695185
-  hidden rotation_59 0 0 -0.9999999999999999 0.0035184476949899025
-  hidden position_59_0 0.020668593441785548
-  hidden linearVelocity_59 7.489906545181961e-06 -8.292186656011602e-06 3.113406494165959e-05
-  hidden angularVelocity_59 7.084717877418072e-05 0.00015489436012011487 -0.0005085760771845633
-  hidden rotation_60 -0.9998932122071946 0.010333523056366414 0.010333561013585752 1.5709067934948029
-  hidden linearVelocity_60 4.8627631487606474e-06 -2.4696039238861906e-07 3.2566082359375274e-05
-  hidden angularVelocity_60 7.102710831664039e-05 0.00019959149500643788 -0.0005081080850308793
   translation -4.999458318100831 -9.056452039376476e-05 0.0882377293080783
   rotation 0.48134709376506196 0.8763253227003475 -0.018944764924922582 0.0219016264587718
   controller "grocery_shopper"
@@ -1232,7 +1137,7 @@ TiagoSteel {
               }
             ]
           }
-          Transform {
+          Pose {
             translation 0.2895 0.1035 0
             children [
               Box {
@@ -1240,7 +1145,7 @@ TiagoSteel {
               }
             ]
           }
-          Transform {
+          Pose {
             translation -0.2895 0.1035 0
             children [
               Box {
@@ -1248,7 +1153,7 @@ TiagoSteel {
               }
             ]
           }
-          Transform {
+          Pose {
             translation 0 0.1035 0.193
             children [
               Box {
@@ -1256,7 +1161,7 @@ TiagoSteel {
               }
             ]
           }
-          Transform {
+          Pose {
             translation 0 0.1035 -0.193
             children [
               Box {
@@ -1276,6 +1181,7 @@ TiagoSteel {
     GPS {
     }
     HokuyoUrg04lxug01 {
+      rotation 0 1 0 -0.02
     }
   ]
 }
@@ -1455,7 +1361,7 @@ Solid {
   translation -3.11 -0.29 0.1498420731975054
   rotation 1 -9.519691278179414e-17 -7.188222975019815e-17 1.5707963267948966
   children [
-    Transform {
+    Pose {
       children [
         Shape {
           appearance PBRAppearance {
@@ -1492,7 +1398,7 @@ Solid {
   ]
   name "biscuit box"
   model "biscuit box"
-  boundingObject Transform {
+  boundingObject Pose {
     translation 0 0 0.02
     children [
       Shape {
@@ -1515,7 +1421,7 @@ Solid {
   translation -2.7443894324051783 -0.28987924043350777 0.14984322796472205
   rotation 0.9999901666804484 0.0034265061964916656 0.0028152438072910208 1.5708029951016795
   children [
-    Transform {
+    Pose {
       children [
         Shape {
           appearance PBRAppearance {
@@ -1552,7 +1458,7 @@ Solid {
   ]
   name "biscuit box(5)"
   model "biscuit box"
-  boundingObject Transform {
+  boundingObject Pose {
     translation 0 0 0.02
     children [
       Shape {
@@ -1575,7 +1481,7 @@ Solid {
   translation -2.4289534357521085 -0.28995332360129206 0.14984277466340132
   rotation 0.9999996623114988 -0.0007995948809078329 -0.00018980230438511763 1.570795542998508
   children [
-    Transform {
+    Pose {
       children [
         Shape {
           appearance PBRAppearance {
@@ -1612,7 +1518,7 @@ Solid {
   ]
   name "biscuit box(6)"
   model "biscuit box"
-  boundingObject Transform {
+  boundingObject Pose {
     translation 0 0 0.02
     children [
       Shape {
@@ -1635,7 +1541,7 @@ Solid {
   translation -0.59 -0.29 0.1498420731975054
   rotation 1 -6.39487989015247e-17 -3.2307443185240475e-17 1.5707963267948966
   children [
-    Transform {
+    Pose {
       children [
         Shape {
           appearance PBRAppearance {
@@ -1672,7 +1578,7 @@ Solid {
   ]
   name "biscuit box(7)"
   model "biscuit box"
-  boundingObject Transform {
+  boundingObject Pose {
     translation 0 0 0.02
     children [
       Shape {
@@ -1731,13 +1637,13 @@ Can {
   rotation -0.9333915165690708 -0.20657272398223317 0.2934416236723244 1.5152391121821566e-15
   name "can(4)"
 }
-DEF biscuitbox Transform {
+DEF biscuitbox Pose {
   children [
     Solid {
       translation -2.350000000000001 0.3 0.5396075999999993
       rotation 3.9103931800794753e-11 -2.4137195529925584e-10 1 4.365068531732789e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -1780,7 +1686,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -1802,7 +1708,7 @@ DEF biscuitbox Transform {
       translation -1.92 0.3 0.5396076003911217
       rotation 8.117615134309422e-11 9.094092685651969e-11 1 4.3650685314994844e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -1845,7 +1751,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(1)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -1867,7 +1773,7 @@ DEF biscuitbox Transform {
       translation -1.45 0.3 0.5396076003911217
       rotation 7.516584225904067e-11 1.19309103276171e-10 0.9999999999999999 4.365068531678734e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -1910,7 +1816,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(2)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -1932,7 +1838,7 @@ DEF biscuitbox Transform {
       translation -0.9333176711865027 0.29454116053422913 0.5396076826611683
       rotation 3.012971585491644e-07 6.417876251899189e-06 0.99999999997936 0.1328655512826629
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -1975,7 +1881,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(3)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -1997,7 +1903,7 @@ DEF biscuitbox Transform {
       translation -0.42000000000000004 0.3 0.5396076003911217
       rotation 1.0521737141968248e-10 -1.7653043875760218e-10 1 4.3650685319437654e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2040,7 +1946,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(4)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2062,7 +1968,7 @@ DEF biscuitbox Transform {
       translation 5.3 0.3 0.5396076003911217
       rotation 1.2324833797895916e-10 1.112038928398205e-10 1 4.365068531638509e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2105,7 +2011,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(5)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2127,7 +2033,7 @@ DEF biscuitbox Transform {
       translation 5.82 0.3 0.5396076003911217
       rotation 1.1122770443565494e-10 2.2046778386018097e-11 1 4.36506853162826e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2170,7 +2076,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(6)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2192,7 +2098,7 @@ DEF biscuitbox Transform {
       translation 6.51 0.3 0.5396076003911217
       rotation 1.1723802120658258e-10 6.66253356125559e-11 1 4.365068531660621e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2235,7 +2141,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(7)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2257,7 +2163,7 @@ DEF biscuitbox Transform {
       translation 7.17 0.3 0.5396076003911217
       rotation 1.4127926778454953e-10 5.041494145226216e-11 1 4.3650685316510335e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2300,7 +2206,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(8)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2320,14 +2226,14 @@ DEF biscuitbox Transform {
     }
   ]
 }
-DEF biscuitbox Transform {
+DEF biscuitbox Pose {
   translation 3.72 -4.02 0.49
   children [
     Solid {
       translation -2.350000000000001 0.2999999999999998 0.5496065552284664
       rotation 2.7083340987455872e-11 7.473056163806854e-11 1 4.3650685313862483e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2370,7 +2276,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(9)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2392,7 +2298,7 @@ DEF biscuitbox Transform {
       translation -1.92 0.2999999999999998 0.5496065552702574
       rotation 7.516584268998221e-11 1.2336169959606542e-10 1 4.3650685314659753e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2435,7 +2341,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(10)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2457,7 +2363,7 @@ DEF biscuitbox Transform {
       translation -1.4499999999999997 0.2999999999999998 0.5496065552702574
       rotation 1.23248333705686e-10 7.06779297003302e-11 0.9999999999999999 4.3650685316559235e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2500,7 +2406,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(11)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2522,7 +2428,7 @@ DEF biscuitbox Transform {
       translation -0.9199999999999999 0.2999999999999998 0.5496065552702574
       rotation 3.910396000249314e-11 2.609940141462805e-11 1 4.365068531583314e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2565,7 +2471,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(12)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2587,7 +2493,7 @@ DEF biscuitbox Transform {
       translation -0.41999999999999993 0.2999999999999998 0.5496065552702574
       rotation 3.309364280361313e-11 -2.2531752127010092e-11 1 4.3650685315494737e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2630,7 +2536,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(13)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2652,7 +2558,7 @@ DEF biscuitbox Transform {
       translation 5.299999999999999 0.2999999999999998 0.5496065552702574
       rotation -8.97854255401297e-12 -3.063692917212736e-11 1 4.3650685314757606e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2695,7 +2601,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(14)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2717,7 +2623,7 @@ DEF biscuitbox Transform {
       translation 5.82 0.2999999999999998 0.5496065552702574
       rotation 2.708332304051098e-11 -9.547848355199053e-11 1 4.365068531589674e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2760,7 +2666,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(15)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2782,7 +2688,7 @@ DEF biscuitbox Transform {
       translation 6.51 0.2999999999999998 0.5496065552702574
       rotation 2.7083308512069724e-11 -2.332667582183659e-10 1 4.3650685317481754e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2825,7 +2731,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(16)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2847,7 +2753,7 @@ DEF biscuitbox Transform {
       translation 7.17 0.2999999999999998 0.5496065552702574
       rotation 2.7083308512069724e-11 -2.332667582183659e-10 1 4.3650685317481754e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2890,7 +2796,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(17)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2910,14 +2816,14 @@ DEF biscuitbox Transform {
     }
   ]
 }
-DEF biscuitbox Transform {
+DEF biscuitbox Pose {
   translation -0.9 -7.47 -0.5
   children [
     Solid {
       translation -2.350000000000001 0.2999999999999998 0.5296064229222709
       rotation -5.105072021402212e-11 3.4204627431625943e-11 1 4.3650685320885985e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -2960,7 +2866,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(18)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -2982,7 +2888,7 @@ DEF biscuitbox Transform {
       translation -1.92 0.2999999999999998 0.5296064231723437
       rotation -2.7009502269356783e-11 -2.535297197600047e-10 1 4.3650685316043625e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3025,7 +2931,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(19)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3047,7 +2953,7 @@ DEF biscuitbox Transform {
       translation -1.4500000000000002 0.2999999999999998 0.5296064231723437
       rotation 4.511429899024266e-11 2.814129669525998e-10 1 4.3650685318324425e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3090,7 +2996,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(20)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3112,7 +3018,7 @@ DEF biscuitbox Transform {
       translation -0.92 0.2999999999999998 0.5296064231723437
       rotation 1.5062714279027744e-11 5.041498820346793e-11 1 4.3650685315656245e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3155,7 +3061,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(21)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3177,7 +3083,7 @@ DEF biscuitbox Transform {
       translation -0.42000000000000004 0.2999999999999998 0.5296064231723437
       rotation -2.9682133909022293e-12 1.3146692116291724e-10 0.9999999999999999 4.365068531529815e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3220,7 +3126,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(22)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3242,7 +3148,7 @@ DEF biscuitbox Transform {
       translation 5.3 0.2999999999999998 0.5296064231723436
       rotation -2.700947235920971e-11 3.0152022215912155e-11 1 4.3650685317133566e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3285,7 +3191,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(23)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3307,7 +3213,7 @@ DEF biscuitbox Transform {
       translation 5.82 0.2999999999999998 0.5296064231723437
       rotation -3.301978485880593e-11 2.6099428128813423e-11 1 4.3650685316210316e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3350,7 +3256,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(24)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3372,7 +3278,7 @@ DEF biscuitbox Transform {
       translation 6.51 0.2999999999999998 0.5296064231723436
       rotation -2.700947235920971e-11 3.0152022215912155e-11 1 4.3650685317133566e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3415,7 +3321,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(25)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3437,7 +3343,7 @@ DEF biscuitbox Transform {
       translation 7.17 0.2999999999999998 0.5296064231723436
       rotation -2.700947235920971e-11 3.0152022215912155e-11 1 4.3650685317133566e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3480,7 +3386,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(26)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3500,14 +3406,14 @@ DEF biscuitbox Transform {
     }
   ]
 }
-DEF biscuitbox Transform {
+DEF biscuitbox Pose {
   translation -0.9 -0.62 -0.5
   children [
     Solid {
       translation -2.350000000000001 0.3 0.5296064229222709
       rotation 1.29258648773105e-10 9.904610167512098e-11 0.9999999999999999 4.3650685314947114e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3550,7 +3456,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(28)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3572,7 +3478,7 @@ DEF biscuitbox Transform {
       translation -1.9239684057617494 0.2999330258712127 0.5296069982600394
       rotation 0.00025933656769092767 -0.09876099266614796 0.9951111491045319 0.006359839486454346
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3615,7 +3521,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(29)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3637,7 +3543,7 @@ DEF biscuitbox Transform {
       translation -1.4492162987033077 0.2999765641056293 0.529606445552588
       rotation -3.23578867990023e-05 0.5236658160680958 -0.8519237712581463 0.0011990697123987163
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3680,7 +3586,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(30)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3702,7 +3608,7 @@ DEF biscuitbox Transform {
       translation -0.92 0.3 0.5296064231723436
       rotation 6.314520316404347e-11 -2.2531763258443094e-11 1 4.36506853146628e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3745,7 +3651,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(31)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3767,7 +3673,7 @@ DEF biscuitbox Transform {
       translation -0.42000000000000004 0.3 0.5296064231723437
       rotation 3.309366117655669e-11 1.5172988937506228e-10 1 4.365068531551649e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3810,7 +3716,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(32)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3832,7 +3738,7 @@ DEF biscuitbox Transform {
       translation 5.3 0.3 0.5296064231723437
       rotation 6.314519888664987e-11 -6.305772639464481e-11 1 4.365068531785092e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3875,7 +3781,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(33)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3897,7 +3803,7 @@ DEF biscuitbox Transform {
       translation 5.82 0.3 0.5296064231723437
       rotation 5.713490219535772e-11 8.28357431252143e-11 1 4.365068531921535e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -3940,7 +3846,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(34)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -3962,7 +3868,7 @@ DEF biscuitbox Transform {
       translation 6.51 0.3 0.5296064231723437
       rotation 6.314519888664987e-11 -6.305772639464481e-11 1 4.365068531785092e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4005,7 +3911,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(35)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4027,7 +3933,7 @@ DEF biscuitbox Transform {
       translation 7.17 0.3 0.5296064231723437
       rotation 7.516581747444874e-11 -1.1574148292528062e-10 1 4.3650685318214644e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4070,7 +3976,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(36)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4090,14 +3996,14 @@ DEF biscuitbox Transform {
     }
   ]
 }
-DEF biscuitbox Transform {
+DEF biscuitbox Pose {
   translation 2.15 3.28 0.49
   children [
     Solid {
       translation -2.350000000000001 0.2999999999999998 0.5496065552284664
       rotation 4.5114263102758656e-11 -5.900512340669434e-11 1 4.3650685314566796e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4140,7 +4046,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(37)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4162,7 +4068,7 @@ DEF biscuitbox Transform {
       translation -1.92 0.2999999999999998 0.5496065552702574
       rotation -2.0999163706043896e-11 -2.2687505211224417e-12 1 4.3650685316659635e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4205,7 +4111,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(38)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4227,7 +4133,7 @@ DEF biscuitbox Transform {
       translation -1.45 0.2999999999999998 0.5496065552702574
       rotation 5.112456320453475e-11 -1.7247782240578423e-10 0.9999999999999999 4.365068532003859e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4270,7 +4176,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(39)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4292,7 +4198,7 @@ DEF biscuitbox Transform {
       translation -0.9199999999999999 0.2999999999999998 0.5496065552702574
       rotation 1.0521738937637908e-10 -6.321393585498174e-12 0.9999999999999999 4.3650685314868584e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4335,7 +4241,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(40)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4357,7 +4263,7 @@ DEF biscuitbox Transform {
       translation -0.41999999999999993 0.2999999999999998 0.5496065552702574
       rotation 1.29258639372452e-10 9.888982765885446e-12 1 4.365068531512729e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4400,7 +4306,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(41)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4422,7 +4328,7 @@ DEF biscuitbox Transform {
       translation 5.299999999999999 0.2999999999999998 0.5496065552702574
       rotation -3.30197895595493e-11 -1.8479131324875705e-11 0.9999999999999999 4.3650685315307823e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4465,7 +4371,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(42)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4487,7 +4393,7 @@ DEF biscuitbox Transform {
       translation 5.82 0.2999999999999998 0.5496065552702574
       rotation -2.9682475731850896e-12 -1.927407839606855e-10 1 4.365068531487448e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4530,7 +4436,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(43)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4552,7 +4458,7 @@ DEF biscuitbox Transform {
       translation 6.51 0.2999999999999998 0.5496065552702574
       rotation 8.11761380920855e-11 -3.468955887672318e-11 1 4.3650685317890585e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4595,7 +4501,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(44)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4617,7 +4523,7 @@ DEF biscuitbox Transform {
       translation 7.17 0.2999999999999998 0.5496065552702574
       rotation 5.7134879125788884e-11 -1.360044578205372e-10 1 4.36506853165767e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4660,7 +4566,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(45)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4680,14 +4586,14 @@ DEF biscuitbox Transform {
     }
   ]
 }
-DEF biscuitbox Transform {
+DEF biscuitbox Pose {
   translation -0.95 6.94 0.49
   children [
     Solid {
       translation -2.3500000000000005 0.2999999999999998 0.5496065552284661
       rotation -8.97853229920694e-12 6.662538236463268e-11 0.9999999999999999 4.365068531538928e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4730,7 +4636,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(47)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4752,7 +4658,7 @@ DEF biscuitbox Transform {
       translation -1.9200000000000002 0.2999999999999998 0.5496065552702574
       rotation -2.968218518287236e-12 8.283576539599088e-11 1 4.365068531459541e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4795,7 +4701,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(48)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4817,7 +4723,7 @@ DEF biscuitbox Transform {
       translation -1.45 0.2999999999999998 0.5496065552702574
       rotation 2.7083289712003555e-11 -4.1158099602903344e-10 0.9999999999999999 4.3650685317202244e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4860,7 +4766,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(49)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4882,7 +4788,7 @@ DEF biscuitbox Transform {
       translation -0.9200000000000002 0.2999999999999998 0.5496065552702574
       rotation 3.910395743948428e-11 1.7838235308268484e-12 1 4.3650685315097076e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4925,7 +4831,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(50)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -4947,7 +4853,7 @@ DEF biscuitbox Transform {
       translation -0.41999999999999993 0.2999999999999998 0.5496065552702574
       rotation 8.718645443812074e-11 5.83640203500296e-12 0.9999999999999999 4.365068531702038e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -4990,7 +4896,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(51)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -5012,7 +4918,7 @@ DEF biscuitbox Transform {
       translation 5.3 0.2999999999999998 0.5496065552702574
       rotation 1.1723800924737925e-10 -4.6847361178481284e-11 1 4.3650685314898886e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -5055,7 +4961,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(52)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -5077,7 +4983,7 @@ DEF biscuitbox Transform {
       translation 5.82 0.2999999999999998 0.5496065552702574
       rotation 1.1723800924737925e-10 -4.6847361178481284e-11 1 4.3650685314898886e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -5120,7 +5026,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(53)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -5142,7 +5048,7 @@ DEF biscuitbox Transform {
       translation 6.51 0.2999999999999998 0.5496065552702574
       rotation 1.1723800924737925e-10 -4.6847361178481284e-11 1 4.3650685314898886e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -5185,7 +5091,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(54)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -5207,7 +5113,7 @@ DEF biscuitbox Transform {
       translation 7.17 0.2999999999999998 0.5496065552702574
       rotation 7.516583242294268e-11 2.609938805383201e-11 1 4.3650685321839776e-07
       children [
-        Transform {
+        Pose {
           children [
             Shape {
               appearance PBRAppearance {
@@ -5250,7 +5156,7 @@ DEF biscuitbox Transform {
       ]
       name "cereal box(55)"
       model "cereal box"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.15
         children [
           Shape {
@@ -5272,7 +5178,7 @@ DEF biscuitbox Transform {
 }
 DEF honey_jars Group {
   children [
-    Transform {
+    Pose {
       children [
         Solid {
           translation -3.1 -0.37 1.0394015153884526
@@ -5329,7 +5235,7 @@ DEF honey_jars Group {
           ]
           name "honey jar"
           model "honey jar"
-          boundingObject Transform {
+          boundingObject Pose {
             translation 0 0 0.058
             children [
               Shape {
@@ -5403,7 +5309,7 @@ DEF honey_jars Group {
           ]
           name "honey jar(1)"
           model "honey jar"
-          boundingObject Transform {
+          boundingObject Pose {
             translation 0 0 0.058
             children [
               Shape {
@@ -5477,7 +5383,7 @@ DEF honey_jars Group {
           ]
           name "honey jar(4)"
           model "honey jar"
-          boundingObject Transform {
+          boundingObject Pose {
             translation 0 0 0.058
             children [
               Shape {
@@ -5551,7 +5457,7 @@ DEF honey_jars Group {
           ]
           name "honey jar(2)"
           model "honey jar"
-          boundingObject Transform {
+          boundingObject Pose {
             translation 0 0 0.058
             children [
               Shape {
@@ -5625,7 +5531,7 @@ DEF honey_jars Group {
           ]
           name "honey jar(3)"
           model "honey jar"
-          boundingObject Transform {
+          boundingObject Pose {
             translation 0 0 0.058
             children [
               Shape {
@@ -5650,7 +5556,7 @@ DEF honey_jars Group {
 }
 DEF honey_jars Group {
   children [
-    Transform {
+    Pose {
       translation 3 4 -0.54
       children [
         Solid {
@@ -5708,7 +5614,7 @@ DEF honey_jars Group {
           ]
           name "honey jar(5)"
           model "honey jar"
-          boundingObject Transform {
+          boundingObject Pose {
             translation 0 0 0.058
             children [
               Shape {
@@ -5782,7 +5688,7 @@ DEF honey_jars Group {
           ]
           name "honey jar(6)"
           model "honey jar"
-          boundingObject Transform {
+          boundingObject Pose {
             translation 0 0 0.058
             children [
               Shape {
@@ -5856,7 +5762,7 @@ DEF honey_jars Group {
           ]
           name "honey jar(7)"
           model "honey jar"
-          boundingObject Transform {
+          boundingObject Pose {
             translation 0 0 0.058
             children [
               Shape {
@@ -5930,7 +5836,7 @@ DEF honey_jars Group {
           ]
           name "honey jar(8)"
           model "honey jar"
-          boundingObject Transform {
+          boundingObject Pose {
             translation 0 0 0.058
             children [
               Shape {
@@ -6004,7 +5910,7 @@ DEF honey_jars Group {
           ]
           name "honey jar(9)"
           model "honey jar"
-          boundingObject Transform {
+          boundingObject Pose {
             translation 0 0 0.058
             children [
               Shape {
@@ -6027,7 +5933,7 @@ DEF honey_jars Group {
     }
   ]
 }
-DEF jamjar Transform {
+DEF jamjar Pose {
   children [
     Solid {
       translation 3.159502951263244 0.3000000000000003 0.5394541141000364
@@ -6100,7 +6006,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(1)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -6192,7 +6098,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(2)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -6284,7 +6190,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(3)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -6376,7 +6282,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(4)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -6468,7 +6374,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(5)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -6560,7 +6466,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(6)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -6652,7 +6558,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(7)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -6744,7 +6650,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(8)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -6836,7 +6742,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(9)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -6928,7 +6834,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(10)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -7020,7 +6926,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(11)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -7112,7 +7018,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(12)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -7204,7 +7110,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(13)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -7296,7 +7202,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(14)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -7388,7 +7294,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(15)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -7411,7 +7317,7 @@ DEF jamjar Transform {
     }
   ]
 }
-DEF jamjar Transform {
+DEF jamjar Pose {
   translation 7.95 4.04 0
   children [
     Solid {
@@ -7485,7 +7391,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(16)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -7577,7 +7483,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(17)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -7669,7 +7575,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(18)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -7761,7 +7667,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(19)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -7853,7 +7759,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(20)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -7945,7 +7851,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(21)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -8037,7 +7943,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(22)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -8129,7 +8035,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(23)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -8221,7 +8127,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(24)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -8313,7 +8219,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(25)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -8405,7 +8311,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(26)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -8497,7 +8403,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(27)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -8589,7 +8495,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(28)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -8681,7 +8587,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(30)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -8773,7 +8679,7 @@ DEF jamjar Transform {
       ]
       name "jam jar(29)"
       model "jam jar"
-      boundingObject Transform {
+      boundingObject Pose {
         translation 0 0 0.058
         children [
           Shape {
@@ -8927,8 +8833,6 @@ Solid {
   recognitionColors [
     1 1 0
   ]
-  linearVelocity 3.490346857677288e-17 -1.8259641719681558e-17 1.4613692705965823e-13
-  angularVelocity 9.90857700325887e-16 2.1798710401393293e-15 2.521968854709952e-16
 }
 Solid {
   translation 4.400930000000166 -3.53294 1.0748653607741232
@@ -8951,8 +8855,6 @@ Solid {
   recognitionColors [
     1 1 0
   ]
-  linearVelocity 1.0825809891021012e-16 -2.2254977242689894e-17 3.598787790213747e-07
-  angularVelocity 7.926861602607181e-16 3.1707446410342628e-15 -3.2138364397839066e-17
 }
 Solid {
   translation -0.8647696076431266 0.3606378757006146 0.5748653700715028
@@ -9085,6 +8987,4 @@ Solid {
   recognitionColors [
     0 1 0
   ]
-  linearVelocity -2.5122877111668424e-17 -1.5748913723656688e-17 2.4713303871191208e-15
-  angularVelocity 3.9634308013035126e-16 -7.606069315722474e-16 -1.303267823998758e-18
 }
