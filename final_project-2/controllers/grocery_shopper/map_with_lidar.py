@@ -11,10 +11,47 @@ lidar_offsets = lidar_offsets[83:len(lidar_offsets)-83] # Only keep lidar readin
 
 
 
+
+
+
+def get_points_between(x0: int, y0: int, x1: int, y1: int) -> list[tuple[int, int]]:
+    """
+    Returns a list of (x,y) tuples that lie on a straight line between (x0,y0) and (x1,y1)
+    using Bresenham's line algorithm.
+    """
+    points = []
+    dx = abs(x1 - x0)
+    dy = abs(y1 - y0)
+    x, y = x0, y0
+    n = 1 + dx + dy
+    x_inc = 1 if x1 > x0 else -1
+    y_inc = 1 if y1 > y0 else -1
+    error = dx - dy
+    dx *= 2
+    dy *= 2
+
+    while n > 0:
+        points.append((x, y))
+        if error > 0:
+            x += x_inc
+            error -= dy
+        else:
+            y += y_inc
+            error += dx
+        n -= 1
+
+    return points
+
+
 def make_lidar_map(pose_x, pose_y, pose_theta, curr_map, lidar_sensor_readings, display):
     
-    print(pose_x, pose_y, pose_theta, lidar_sensor_readings[333-80])
-    # print(lidar_sensor_readings)
+    amount_add_per_cycle = .003
+    explored_add_per_cycle = -.001
+    
+    # Convert robot position to display coordinates
+    robot_x = (pose_x + 15) * 10
+    robot_y = (pose_y + 15) * 10
+    
     for i, rho in enumerate(lidar_sensor_readings):
         alpha = lidar_offsets[i]
 
@@ -26,37 +63,64 @@ def make_lidar_map(pose_x, pose_y, pose_theta, curr_map, lidar_sensor_readings, 
         ry = -math.sin(alpha)*rho
 
         t = pose_theta + np.pi/2.
-        # Convert detection from robot coordinates into world coordinates
-        wx =  math.cos(t)*rx - math.sin(t)*ry + pose_x
-        wy =  math.sin(t)*rx + math.cos(t)*ry + pose_y
+        wx =  math.cos(t)*rx - math.sin(t)*ry 
+        wy =  math.sin(t)*rx + math.cos(t)*ry 
         
-        # print(rx, ry)÷s
-
-        ################ ^ [End] Do not modify ^ ##################
-
-        #print("Rho: %f Alpha: %f rx: %f ry: %f wx: %f wy: %f" % (rho,alpha,rx,ry,wx,wy))
-        if wx >= 12:
-            wx = 11.999
-        if wy >= 12:
-            wy = 11.999
-        if rho < LIDAR_SENSOR_MAX_RANGE:
-            # Part 1.3: visualize map gray values.
+        wx *= 10
+        wy *= 10
+        
+        wx += robot_x
+        wy += robot_y
             
-            #try catch for bounds just in case
-            try:
-                grey_val = min(curr_map[359-abs(int(wx))][abs(int(wy))] + .005, 1.0)
-                curr_map[359-abs(int(wx))][abs(int(wy))] = grey_val
-                # You will eventually REPLACE the following lines with a more robust version of the map
-                # with a grayscale drawing containing more levels than just 0 and 1.
+        try:
+            grey_val = min(curr_map[int(wx)][int(wy)] + amount_add_per_cycle, 1.0)
+            curr_map[int(wx)][int(wy)] = grey_val
+            
+            color = (grey_val*256**2+grey_val*256+grey_val)*255
+            display.setColor(int(color))
+            display.drawPixel(int(wx), int(wy))
+        
+        
+            # explored_points = get_points_between(robot_x, robot_y, wx, wy)
+            # for x, y in explored_points:
                 
-                color = (grey_val*256**2+grey_val*256+grey_val)*255
-                display.setColor(int(color))
-                display.drawPixel(360-abs(int(wx)),abs(int(wy)))
-            except:
-                pass
+            #     grey_val = max(curr_map[x][y] + explored_add_per_cycle, -1.0)
+            #     curr_map[x][y] = grey_val
+                
+            #     grey_val = abs(grey_val)
+            #     color = (grey_val*256**2+grey_val*256+grey_val)*255
+            #     display.setColor(int(color))
+            #     display.drawPixel(x, y)
+            
+        except Exception as e:
+            print(e)
+
                 
             
 
     # Draw the robot's current pose on the 360x360 display
     display.setColor(int(0xFF0000))
     display.drawPixel(360-abs(int(pose_x)), abs(int(pose_y)))
+    
+    
+    
+def filter_lidar_map(lidar_map: np.ndarray):
+    
+    obstacle_cutoff = .8
+    explored_cuttoff = -.8
+    
+    size_x, size_y = lidar_map.shape    
+    
+    new_map = np.zeros_like(lidar_map)
+    
+    for x in size_x:
+        for y in size_y:
+            val = lidar_map[x, y]
+            if val > obstacle_cutoff:
+                new_map[x, y] = 2
+            elif val < explored_cuttoff:
+                new_map[x, y] = 1
+            else:
+                new_map[x, y] = 0
+    
+    return new_map
