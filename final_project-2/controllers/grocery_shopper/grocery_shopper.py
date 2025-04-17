@@ -11,7 +11,7 @@ import heapq
 from ikpy.chain import Chain
 from ikpy.link import OriginLink, URDFLink
 import ikpy.utils.plot as plot_utils
-
+import keyboard
 
 # our files
 import map_with_lidar as lid
@@ -80,6 +80,7 @@ lidar.enablePointCloud()
 # Enable display
 display = robot.getDevice("display")
 
+
 # Odometry
 pose_x     = 0
 pose_y     = 0
@@ -108,7 +109,9 @@ lidar_map = np.zeros(shape=[360,360])
 # Main Loop
 while robot.step(timestep) != -1:
     
-    # get default mappings for testing
+    ##########################################################################################
+    # POSITIONING - ODOMETRY
+    ##########################################################################################
     pose_x = gps.getValues()[0]
     pose_y = gps.getValues()[1]
     
@@ -119,12 +122,27 @@ while robot.step(timestep) != -1:
     lidar_sensor_readings = lidar.getRangeImage()
     lidar_sensor_readings = lidar_sensor_readings[83:len(lidar_sensor_readings)-83]
     
+    
+    ##########################################################################################
+    # LIDAR/MAPS
+    ##########################################################################################
     lid.make_lidar_map(pose_x, pose_y, pose_theta, lidar_map, lidar_sensor_readings, display)
     
+    if keyboard.is_pressed('s'):
+        print("filtering...")
+        lid.display_map(display, lid.filter_lidar_map(lidar_map))
     
+    
+    ##########################################################################################
+    # MOVING
+    ##########################################################################################
     robot_parts["wheel_left_joint"].setVelocity(vL)
     robot_parts["wheel_right_joint"].setVelocity(vR)
     
+    
+    ##########################################################################################
+    # GRABBING ARM
+    ##########################################################################################
     if(gripper_status=="open"):
         # Close gripper, note that this takes multiple time steps...
         robot_parts["gripper_left_finger_joint"].setPosition(0)
