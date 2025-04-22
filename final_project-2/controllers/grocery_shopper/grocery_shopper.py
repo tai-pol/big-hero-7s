@@ -11,10 +11,10 @@ import heapq
 from ikpy.chain import Chain
 from ikpy.link import OriginLink, URDFLink
 import ikpy.utils.plot as plot_utils
-import keyboard
 
 # our files
 import map_with_lidar as lid
+import rrt as rrt
 
 
 
@@ -80,6 +80,10 @@ lidar.enablePointCloud()
 # Enable display
 display = robot.getDevice("display")
 
+# Keyboard
+keyboard = robot.getKeyboard()
+keyboard.enable(timestep)
+
 
 # Odometry
 pose_x     = 0
@@ -104,7 +108,8 @@ gripper_status="closed"
 
 # important variables
 lidar_map = np.zeros(shape=[360,360])
-
+filtered_lidar_map = np.zeros(shape=[360,360])
+current_map_location = ()
 
 # Main Loop
 while robot.step(timestep) != -1:
@@ -121,16 +126,19 @@ while robot.step(timestep) != -1:
 
     lidar_sensor_readings = lidar.getRangeImage()
     lidar_sensor_readings = lidar_sensor_readings[83:len(lidar_sensor_readings)-83]
-    
+    current_map_location = lid.globalcoords_to_map_coords(pose_x, pose_y)
     
     ##########################################################################################
     # LIDAR/MAPS
     ##########################################################################################
     lid.make_lidar_map(pose_x, pose_y, pose_theta, lidar_map, lidar_sensor_readings, display)
     
-    if keyboard.is_pressed('s'):
+    key = keyboard.getKey()
+    print(key)
+    if key == ord('S'):
         print("filtering...")
-        lid.display_map(display, lid.filter_lidar_map(lidar_map))
+        filtered_lidar_map = lid.filter_lidar_map(lidar_map)
+        lid.display_map(display, filtered_lidar_map)
     
     
     ##########################################################################################
