@@ -32,10 +32,10 @@ def map_coords_to_global_coords(x, y) -> tuple[any, any]:
     try:
         res = ((x/10) - 15, (y/10) - 15)
         
-        if res[0] < -14 or res[0] > 14:
+        if res[0] < -15 or res[0] > 15:
             raise TypeError
         
-        if res[1] < -7 or res[1] > 7:
+        if res[1] < -8 or res[1] > 8:
             raise TypeError
     except Exception as e:
         print(e)

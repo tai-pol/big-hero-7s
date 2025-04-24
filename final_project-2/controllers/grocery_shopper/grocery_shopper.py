@@ -11,10 +11,12 @@ import heapq
 from ikpy.chain import Chain
 from ikpy.link import OriginLink, URDFLink
 import ikpy.utils.plot as plot_utils
+import time
 
 # our files
 import map_with_lidar as lid
 import rrt as rrt
+import ik as ik
 
 
 
@@ -84,6 +86,14 @@ display = robot.getDevice("display")
 keyboard = robot.getKeyboard()
 keyboard.enable(timestep)
 
+curr_waypoint = 0
+elapsed_time = 0
+prev_time = 0
+forward_state = 0
+rrt_state = 'goal'
+map_waypoints = []
+world_waypoints = []
+forward_state = 0
 
 # Odometry
 pose_x     = 0
@@ -120,6 +130,10 @@ while robot.step(timestep) != -1:
     pose_x = gps.getValues()[0]
     pose_y = gps.getValues()[1]
     
+
+    elapsed_time += timestep / 1000.0
+    delta_time = timestep / 1000.0
+    
     n = compass.getValues()
     rad = -((math.atan2(n[0], n[2]))-1.5708)
     pose_theta = rad
@@ -131,6 +145,8 @@ while robot.step(timestep) != -1:
     ##########################################################################################
     # LIDAR/MAPS
     ##########################################################################################
+
+    # make/update the lidar map on every robot step
     lid.make_lidar_map(pose_x, pose_y, pose_theta, lidar_map, lidar_sensor_readings, display)
     
     key = keyboard.getKey()
@@ -139,11 +155,66 @@ while robot.step(timestep) != -1:
         print("filtering...")
         filtered_lidar_map = lid.filter_lidar_map(lidar_map)
         lid.display_map(display, filtered_lidar_map)
+
+        current_map_position = lid.globalcoords_to_map_coords(pose_x, pose_y)
+        # update based on new map
+        frontiers, unknown, explored, obstacles = rrt.map_update(filtered_lidar_map)
+        # print(frontiers)
+        goal_point = rrt.get_random_frontier_vertex()
+        bounds = np.array([[0,360],[0,360]])
+        node_list, map_waypoints = rrt.rrt_star(filtered_lidar_map, bounds, rrt.obstacles, rrt.point_is_valid, current_map_position, goal_point, 200, 30)
+        print(node_list)
+        print(map_waypoints)
+        rrt.visualize_2D_graph(bounds, rrt.obstacles, node_list, goal_point, 'robot_rrt_star_run.png')
+
+        if map_waypoints is not None:
+            world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
+        else:
+            print("map_waypoints is None!")
+            world_waypoints = []
+
+        # world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
+        curr_waypoint = 0
+
+    vels = ik.nav_to_waypoint(world_waypoints, curr_waypoint, pose_x, pose_y, pose_theta)
+    vL = vels[0]
+    vR = vels[1]
+
+    # if it's the beginning of program or if we've reached our frontier point, filter the lidar map
+    # if len(world_waypoints) == 0 or curr_waypoint == len(world_waypoints):
+    #     print("filtering...")
+    #     filtered_lidar_map = lid.filter_lidar_map(lidar_map)
+    #     lid.display_map(display, filtered_lidar_map)
+
+    #     current_map_position = lid.globalcoords_to_map_coords(pose_x, pose_y)
+    #     # update based on new map
+    #     rrt.map_update(filtered_lidar_map, current_map_position)
+    #     goal_point = rrt.get_random_frontier_vertex()
+    #     bounds = np.array([[0,360],[0,360]])
+    #     node_list, map_waypoints = rrt.rrt_star(filtered_lidar_map, bounds, rrt.obstacles, rrt.point_is_valid, current_map_position, goal_point, 200, 30)
+    #     rrt.visualize_2D_graph(bounds, rrt.obstacles, node_list, goal_point, 'robot_rrt_star_run.png')
+
+    #     if map_waypoints is not None:
+    #         world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
+    #     else:
+    #         print("map_waypoints is None!")
+    #         world_waypoints = []
+
+    #     # world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
+    #     curr_waypoint = 0
+    
+    # key = keyboard.getKey()
+    # print(key)
+    # if key == ord('S'):
+        # print("filtering...")
+        # filtered_lidar_map = lid.filter_lidar_map(lidar_map)
+        # lid.display_map(display, filtered_lidar_map)
     
     
     ##########################################################################################
     # MOVING
     ##########################################################################################
+    
     robot_parts["wheel_left_joint"].setVelocity(vL)
     robot_parts["wheel_right_joint"].setVelocity(vR)
     

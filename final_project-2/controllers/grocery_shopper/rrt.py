@@ -23,10 +23,6 @@ obstacles = [] # map value of 2
 node_list = [] # list of nodes being navigated to in the map
 current_position = ()
 
-# for testing purposes
-testing_map = np.zeros(shape=[360,360])
-testing_map
-
 # for testing purposes - NOT FINISHED YET!
 def visualize_2D_graph(state_bounds, obstacles, nodes, goal_point=None, filename=None):
     '''
@@ -40,9 +36,17 @@ def visualize_2D_graph(state_bounds, obstacles, nodes, goal_point=None, filename
     plt.xlim(state_bounds[0,0], state_bounds[0,1])
     plt.ylim(state_bounds[1,0], state_bounds[1,1])
 
+    if (len(unknown) > len(explored)):
+        plt.gca().set_facecolor('grey')
+        for pt in explored:
+            plt.plot(pt[0], pt[1], 'o', color='white', markersize=1)
+    else:
+        plt.gca().set_facecolor('white')
+        for pt in unknown:
+            plt.plot(pt[0], pt[1], 'o', color='grey', markersize=1)
+
     for obs in obstacles:
-        plt.plot(obs, color='red')
-        # plot_circle(obs[0][0], obs[0][1], obs[1])
+        plt.plot(obs[0], obs[1], 'ro', markersize=1)
 
     goal_node = None
     for node in nodes:
@@ -77,6 +81,8 @@ def visualize_2D_graph(state_bounds, obstacles, nodes, goal_point=None, filename
         plt.show()
 
 def map_update(map):
+    global frontiers, unknown, explored, obstacles
+
     frontiers.clear()
     unknown.clear()
     explored.clear()
@@ -103,20 +109,24 @@ def map_update(map):
                 unknown.append((i, j))
             if map[i, j] == 2: # if the current element is an obstacle
                 obstacles.append((i, j))
+
+    return frontiers, unknown, explored, obstacles
     
 def get_random_frontier_vertex():
-    return frontiers[np.random.randint(0, len(frontiers)-1)]
+    return frontiers[np.random.randint(0, len(frontiers)-2)]
 
 def get_random_valid_vertex():
-    return explored[np.random.randint(0, len(explored)-1)]
+    return explored[np.random.randint(0, len(explored)-2)]
 
-def point_is_valid(point, map):
+def point_is_valid(point, map: np.array):
     '''
     @param point: n-dimensional array representing a point, should be a set of integers
     @param map: 2D array that holds the map values
     @return bool value that represents whether the point is valid (a free space) or not
     '''
-    if map[point[0], point[1]] == 1: # if the point is an explored, free space
+    x = point[0]
+    y = point[1]
+    if map[x, y] == 1: # if the point is an explored, free space
         return True
     else:
         return False
@@ -166,14 +176,16 @@ def steer(from_point, to_point, delta_q):
     
     path = np.linspace(from_point, to_point, 10, True)
 
-    for point in path:
-        point = np.round(point, 0) # rounds the point to the nearest (x, y) indices in the map - needed for checking obstacles later
+    path = [np.round(point).astype(int) for point in path]
+
+    # for point in path:
+    #     point = np.round(point, 0) # rounds the point to the nearest (x, y) indices in the map - needed for checking obstacles later
 
     return path
 
 
 # use this method to retrieve waypoints for the robot to navigate to a frontier
-def rrt_star(state_bounds, obstacles, point_is_valid, starting_point, goal_point, k, delta_q):
+def rrt_star(map, state_bounds, obstacles, point_is_valid, starting_point, goal_point, k, delta_q):
     '''
     @param state_bounds: matrix of min/max values for each dimension (e.g., [[0,1],[0,1]] for a 2D 1m by 1m square)
     @param state_is_valid: function that maps states (N-dimensional Real vectors) to a Boolean (indicating free vs. forbidden space)
@@ -186,6 +198,8 @@ def rrt_star(state_bounds, obstacles, point_is_valid, starting_point, goal_point
     starting_node = Node(starting_point, parent=None)
     node_list.append(starting_node) # Add Node at starting point with no parent
     path_to_source = []
+
+    print(frontiers)
 
     def get_nearby_nodes(center_point):
         nearby = []
@@ -229,7 +243,7 @@ def rrt_star(state_bounds, obstacles, point_is_valid, starting_point, goal_point
         path_to_new_node = steer(new_parent.point, new_node_point, delta_q)
 
         # checking that the node and path are in valid spaces
-        if not all(point_is_valid(x) for x in path_to_new_node):
+        if not all(point_is_valid(x, map) for x in path_to_new_node):
             continue
         
         # creating the new node and appending to node list
@@ -244,7 +258,7 @@ def rrt_star(state_bounds, obstacles, point_is_valid, starting_point, goal_point
             if q_new.cost + math.dist(q_new.point, curr.point) < curr.cost:
                 path_to_q_new = steer(q_new.point, curr.point, delta_q)
                 # check to make sure the new path is actually valid
-                if all(point_is_valid(x) for x in path_to_q_new):
+                if all(point_is_valid(x, map) for x in path_to_q_new):
                     # if path is valid, then create the new edge from curr to new node
                     curr.parent = q_new
                     curr.path_from_parent = path_to_q_new
@@ -256,12 +270,32 @@ def rrt_star(state_bounds, obstacles, point_is_valid, starting_point, goal_point
 
             # populate path_to_source with nodes from source node to q_new
             while cur_node is not starting_node: 
-                path_to_source.append(cur_node)
+                path_to_source.append(cur_node.point)
                 if cur_node.parent is not None:
                     cur_node = cur_node.parent
                 else:
                     break
 
-            return node_list, path_to_source.reverse()
+            path_to_source.reverse()
+            return node_list, path_to_source
 
     return node_list, path_to_source.reverse()
+
+if __name__ == "__main__":
+    testing_map = np.zeros(shape=[360,360])
+    for i in range(90, 300):
+        for j in range(90, 250):
+            testing_map[i, j] = 1 #explored
+
+    for i in range(100, 200):
+        for j in range(100, 200):
+            testing_map[i, j] = 2 #obstacles
+
+    map_update(testing_map)
+    starting_point = get_random_valid_vertex()
+    goal_point = get_random_frontier_vertex()
+    bounds = np.array([[0,360],[0,360]])
+    K = 200
+    nodes_rrtstar, waypoints = rrt_star(testing_map, bounds, obstacles, point_is_valid, starting_point, goal_point, K, 30)
+    visualize_2D_graph(bounds, obstacles, nodes_rrtstar, goal_point, 'rrt_star_run1.png')
+    # print(obstacles)
