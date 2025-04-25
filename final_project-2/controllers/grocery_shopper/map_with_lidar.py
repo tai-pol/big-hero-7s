@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from scipy.ndimage import binary_dilation
 
 LIDAR_ANGLE_BINS = 667
 LIDAR_SENSOR_MAX_RANGE = 5.5 # Meters
@@ -136,15 +137,18 @@ def filter_lidar_map(lidar_map: np.ndarray):
     
     new_map = np.zeros_like(lidar_map)
     
-    for x in range(size_x):
-        for y in range(size_y):
-            val = lidar_map[x, y]
-            if val > obstacle_cutoff:
-                new_map[x, y] = 2  # Obstacle
-            elif val < explored_cuttoff:
-                new_map[x, y] = 1  # Explored
-            else:
-                new_map[x, y] = 0  # Unknown
+    # for x in range(size_x):
+    #     for y in range(size_y):
+    #         val = lidar_map[x, y]
+    #         if val > obstacle_cutoff:
+    #             new_map[x, y] = 2  # Obstacle
+    #         elif val < explored_cuttoff:
+    #             new_map[x, y] = 1  # Explored
+    #         else:
+    #             new_map[x, y] = 0  # Unknown
+    
+    # optimized filtering code is here
+    new_map = np.where(lidar_map > obstacle_cutoff, 2, np.where(lidar_map < explored_cuttoff, 1, 0))
     
     return new_map
 
@@ -188,36 +192,84 @@ def expand_pixels(input_arr: np.ndarray, box_size: int = 3) -> np.ndarray:
         raise ValueError("input_arr must be a 2D NumPy array.")
     if not isinstance(box_size, int) or box_size < 1:
         raise ValueError("box_size must be a positive integer.")
-    if box_size % 2 == 0:
-        print(f"Warning: box_size ({box_size}) is even. "
-              "The center is ambiguous; using integer division for radius.")
+    # if box_size % 2 == 0:
+    #     print(f"Warning: box_size ({box_size}) is even. "
+    #           "The center is ambiguous; using integer division for radius.")
 
     rows, cols = input_arr.shape
     # Create a new array to store the results, initialized to zeros
     output_arr = np.zeros_like(input_arr)
 
-    # Calculate radius for slicing (integer division handles even box_size)
+    # Calculate radius for slicing
     radius = (box_size - 1) // 2
     radius_ceil = box_size // 2 # Needed for end slice index if box_size is even
 
-    # Iterate through each pixel of the input array
+    # --- Vectorized Approach using Dilation ---
+
+    # 1. Define the structuring element (neighborhood shape)
+    # A square box of size (box_size x box_size)
+    structure = np.ones((box_size, box_size), dtype=bool)
+
+    # 2. Create boolean masks for locations of 1s and 2s
+    mask_1 = (input_arr == 1)
+    mask_2 = (input_arr == 2)
+
+    # 3. Dilate the masks - this expands the True regions
+    dilated_mask_1 = binary_dilation(mask_1, structure=structure)
+    dilated_mask_2 = binary_dilation(mask_2, structure=structure)
+
+    # 4. Combine the results, giving priority to 2s
+    # Start with zeros
+    # Place 1s where the dilated mask for 1 is True
+    output_arr[dilated_mask_1] = 1
+    # Place 2s where the dilated mask for 2 is True (this overwrites any 1s)
+    output_arr[dilated_mask_2] = 2
+
+    return output_arr
+
+
+    # --- Pass 1: Expand all the 1s ---
     for r in range(rows):
         for c in range(cols):
             value = input_arr[r, c]
-            # If the pixel value is not zero, expand it
-            if value != 0:
-                # Calculate the bounds for the box slice, clamping to array edges
+            if value == 1: # Only process 1s in this pass
+                # Calculate bounds, clamping to array edges
                 r_start = max(0, r - radius)
-                # Add 1 because slice end index is exclusive
-                # Use radius_ceil for end slice calculation if box_size is even
                 r_end = min(rows, r + radius_ceil + 1)
                 c_start = max(0, c - radius)
                 c_end = min(cols, c + radius_ceil + 1)
 
-                # Stamp the value onto the output array within the calculated bounds
-                output_arr[r_start:r_end, c_start:c_end] = value
+                # Stamp the value 1 onto the output array
+                output_arr[r_start:r_end, c_start:c_end] = 1
+
+    # --- Pass 2: Expand all the 2s (will overwrite 1s where boxes overlap) --
+    for r in range(rows):
+        for c in range(cols):
+            value = input_arr[r, c]
+            if value == 2: # Only process 2s in this pass
+                # Calculate bounds, clamping to array edges
+                r_start = max(0, r - radius)
+                r_end = min(rows, r + radius_ceil + 1)
+                c_start = max(0, c - radius)
+                c_end = min(cols, c + radius_ceil + 1)
+
+                # Stamp the value 2 onto the output array
+                output_arr[r_start:r_end, c_start:c_end] = 2
 
     return output_arr
+
+# def expand_pixels_v2(input_arr: np.ndarray, box_size: int = 3) -> np.ndarray:
+#     rows, cols = input_arr.shape
+#     # Create a new array to store the results, initialized to zeros
+#     output_arr = np.zeros_like(input_arr)
+    
+#     kernel = np.ones((box_size, box_size))
+    
+# kernel = np.ones((10, 10))  # Define a 3x3 kernel of ones
+# map = convolve2d(filtered_map, kernel, mode='same', boundary='wrap')  # Convolve the map with the kernel
+# map = map > 0  # Convert the convolved map to binary, where 1 represents an obstacle or its configuration space
+# plt.imshow(map, cmap='gray', origin="lower")
+# plt.show()
 
 
 # old code to draw as mapping
