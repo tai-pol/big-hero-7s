@@ -154,6 +154,7 @@ while robot.step(timestep) != -1:
     if key == ord('S'):
         print("filtering...")
         filtered_lidar_map = lid.filter_lidar_map(lidar_map)
+        filtered_lidar_map = lid.expand_pixels(filtered_lidar_map, box_size=5)
         lid.display_map(display, filtered_lidar_map)
 
         current_map_position = lid.globalcoords_to_map_coords(pose_x, pose_y)
