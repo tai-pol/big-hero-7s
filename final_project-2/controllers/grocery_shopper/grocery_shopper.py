@@ -80,8 +80,8 @@ lidar.enable(timestep)
 lidar.enablePointCloud()
 
 # Enable range
-range_finder = robot.getDevice('range-finder')
-range_finder.enable(timestep)
+# range_finder = robot.getDevice('range-finder')
+# range_finder.enable(timestep)
 
 # Enable display
 display = robot.getDevice("display")
