@@ -79,6 +79,10 @@ lidar = robot.getDevice('Hokuyo URG-04LX-UG01')
 lidar.enable(timestep)
 lidar.enablePointCloud()
 
+# Enable range
+range_finder = robot.getDevice('range-finder')
+range_finder.enable(timestep)
+
 # Enable display
 display = robot.getDevice("display")
 
