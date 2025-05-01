@@ -185,57 +185,9 @@ while robot.step(timestep) != -1:
     vL = vels[0]
     vR = vels[1]
 
-    # if it's the beginning of program or if we've reached our frontier point, filter the lidar map
-    # if len(world_waypoints) == 0 or curr_waypoint == len(world_waypoints):
-    #     print("filtering...")
-    #     filtered_lidar_map = lid.filter_lidar_map(lidar_map)
-    #     lid.display_map(display, filtered_lidar_map)
-
-    #     current_map_position = lid.globalcoords_to_map_coords(pose_x, pose_y)
-    #     # update based on new map
-    #     rrt.map_update(filtered_lidar_map, current_map_position)
-    #     goal_point = rrt.get_random_frontier_vertex()
-    #     bounds = np.array([[0,360],[0,360]])
-    #     node_list, map_waypoints = rrt.rrt_star(filtered_lidar_map, bounds, rrt.obstacles, rrt.point_is_valid, current_map_position, goal_point, 200, 30)
-    #     rrt.visualize_2D_graph(bounds, rrt.obstacles, node_list, goal_point, 'robot_rrt_star_run.png')
-
-    #     if map_waypoints is not None:
-    #         world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
-    #     else:
-    #         print("map_waypoints is None!")
-    #         world_waypoints = []
-
-    #     # world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
-    #     curr_waypoint = 0
-    
-    # key = keyboard.getKey()
-    # print(key)
-    # if key == ord('S'):
-        # print("filtering...")
-        # filtered_lidar_map = lid.filter_lidar_map(lidar_map)
-        # lid.display_map(display, filtered_lidar_map)
-    
-    
     ##########################################################################################
     # MOVING
     ##########################################################################################
     
     robot_parts["wheel_left_joint"].setVelocity(vL)
     robot_parts["wheel_right_joint"].setVelocity(vR)
-    
-    
-    ##########################################################################################
-    # GRABBING ARM
-    ##########################################################################################
-    if(gripper_status=="open"):
-        # Close gripper, note that this takes multiple time steps...
-        robot_parts["gripper_left_finger_joint"].setPosition(0)
-        robot_parts["gripper_right_finger_joint"].setPosition(0)
-        if right_gripper_enc.getValue()<=0.005:
-            gripper_status="closed"
-    else:
-        # Open gripper
-        robot_parts["gripper_left_finger_joint"].setPosition(0.045)
-        robot_parts["gripper_right_finger_joint"].setPosition(0.045)
-        if left_gripper_enc.getValue()>=0.044:
-            gripper_status="open"
