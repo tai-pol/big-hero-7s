@@ -1,5 +1,5 @@
 import numpy as np
-import numpy as np, cv2
+import cv2
 import math
 from ultralytics import YOLO  
 from controller import Robot, Camera, Keyboard
