@@ -1,2 +1,2 @@
 # big-hero-7s
-pip install ultralyticsgit 
+pip install ultralytics
