@@ -19,9 +19,10 @@ import matplotlib.pyplot
 class Gripper:
     def __init__(self, robot_reference):
         self.robot = robot_reference
+        self.target = [0, -.7, -.05]
         self.timestep = int(self.robot.getBasicTimeStep())
         
-        self.base_elements=["base_link", "base_link_Torso_joint", "Torso", "torso_lift_joint", 
+        self.base_elements=["base_link", "base_link_Torso_joint", "Torso", "torso_lift_joint",
                             "torso_lift_link", "torso_lift_link_TIAGo front arm_joint", "TIAGo front arm"]
         self.armChain = Chain.from_urdf_file("tiago_urdf.urdf", last_link_vector=[0.004, 0,-0.1741], base_elements=self.base_elements)
         self.part_names = ("head_2_joint", "head_1_joint", "torso_lift_joint", "arm_1_joint",
@@ -35,26 +36,40 @@ class Gripper:
                 position_sensor = motor.getPositionSensor()
                 position_sensor.enable(self.timestep)
                 self.motors.append(motor)
+        
+        # self.move_arm_to_position([0, -.7,  -.25])
+
+            
 
     def move_arm_to_position(self, target=[0, -.5, 0], plot = False):
         """center of arm part 0, -.5, .5
         robot -y, z, -x"""
-        offset_target = [-(target[2])+0.22, -target[0]+0.08, (target[1])+0.97+0.2]
-        initial_position = [0,0,0,0] + [m.getPositionSensor().getValue() for m in self.motors] + [0,0,0,0]
-        ikResults = self.armChain.inverse_kinematics(offset_target, initial_position=initial_position,  
-                                                    target_orientation = [0,0,1], orientation_mode="Y")
-        for res in range(len(ikResults)):
-            if self.armChain.links[res].name in self.part_names:
-                self.robot.getDevice(self.armChain.links[res].name).setPosition(ikResults[res])
-                print("Setting {} to {}".format(self.armChain.links[res].name, ikResults[res]))
-        if plot:
-            self.plot_3d(initial_position, offset_target, ikResults)
+        
+        # print(self.armChain.forward_kinematics([0,0,0,0] + [m.getPositionSensor().getValue() for m in self.motors] + [0,0,0]))
+        
+        self.target = target
+        try:
+            
+            offset_target = [-(target[2])+0.22, -target[0]+0.08, (target[1])+0.97+0.2]
+            initial_position = [0,0,0,0] + [m.getPositionSensor().getValue() for m in self.motors] + [0,0,0,0]
+            ikResults = self.armChain.inverse_kinematics(offset_target, initial_position=initial_position,  
+                                                        target_orientation = [0,0,1], orientation_mode="Y")
+            
+            
+            for res in range(len(ikResults)):
+                if self.armChain.links[res].name in self.part_names:
+                    self.robot.getDevice(self.armChain.links[res].name).setPosition(ikResults[res])
+                    # print("Setting {} to {}".format(self.armChain.links[res].name, ikResults[res]))
+            if plot:
+                self.plot_3d(initial_position, offset_target, ikResults)
+        except Exception as e:
+            print(e)
                 
-    def drop_in_basket(self):
+    def move_to_basket(self):
         """moves the arm to the basket position, make sure to add timer delay
         doesn't open the claw either, do that at the end"""
-        target = [0, -.7, -.05]
-        self.move_arm_to_position(target)
+        self.target = [0, -.7, -.05]
+        self.move_arm_to_position(self.target)
 
     def closeGrip(self):
         self.robot.getDevice("gripper_right_finger_joint").setPosition(0.0)
@@ -70,3 +85,21 @@ class Gripper:
         self.armChain.plot(initial_position, ax, target=offset_target)
         self.armChain.plot(ikResults, ax, target=offset_target)
         matplotlib.pyplot.show()
+    
+    def tele_increment(self, amountxyz: list[int]):
+        """xyz with x being foward and y being to the right"""
+        # y, z, -x = amount 
+        
+        # can't hit anything otherwise it fudging breaks
+        # needs to be 1m from the shelf to grab correctly
+        
+        tuning = [.005, .005, .005]
+        amountxyz = [amountxyz[1] * tuning[0], amountxyz[2] * tuning[1], -amountxyz[0] * tuning[2]]
+        
+        self.target[0] += amountxyz[0]
+        self.target[1] += amountxyz[1]
+        self.target[2] += amountxyz[2]
+        
+        # print("moving to: ", self.target)
+        self.move_arm_to_position(self.target)
+    

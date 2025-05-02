@@ -12,6 +12,7 @@ from ikpy.chain import Chain
 from ikpy.link import OriginLink, URDFLink
 import ikpy.utils.plot as plot_utils
 import time
+import gripper as grip
 
 # our files
 import map_with_lidar as lid
@@ -36,6 +37,7 @@ LIDAR_ANGLE_RANGE = math.radians(240)
 # create the Robot instance.
 robot = Robot()
 
+
 # get the time step of the current world.
 timestep = int(robot.getBasicTimeStep())
 
@@ -49,7 +51,7 @@ part_names = ("head_2_joint", "head_1_joint", "torso_lift_joint", "arm_1_joint",
 
 # All motors except the wheels are controlled by position control. The wheels
 # are controlled by a velocity controller. We therefore set their position to infinite.
-target_pos = (0.0, 0.0, 0.35, 0.07, 1.02, -3.16, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf',0.045,0.045)
+target_pos = (0.0, 0.0, 0, 0.07, 1.02, 0, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf',0.045,0.045)
 
 robot_parts={}
 for i, part_name in enumerate(part_names):
@@ -62,6 +64,8 @@ left_gripper_enc=robot.getDevice("gripper_left_finger_joint_sensor")
 right_gripper_enc=robot.getDevice("gripper_right_finger_joint_sensor")
 left_gripper_enc.enable(timestep)
 right_gripper_enc.enable(timestep)
+
+grippee = grip.Gripper(robot)
 
 # Enable Camera
 camera = robot.getDevice('camera')
@@ -125,6 +129,7 @@ lidar_map = np.zeros(shape=[360,360])
 filtered_lidar_map = np.zeros(shape=[360,360])
 current_map_location = ()
 
+
 # Main Loop
 while robot.step(timestep) != -1:
     
@@ -153,37 +158,61 @@ while robot.step(timestep) != -1:
     # make/update the lidar map on every robot step
     lid.make_lidar_map(pose_x, pose_y, pose_theta, lidar_map, lidar_sensor_readings, display)
     
+    
     key = keyboard.getKey()
-    print(key)
     if key == ord('S'):
-        print("filtering...")
-        filtered_lidar_map = lid.filter_lidar_map(lidar_map)
-        filtered_lidar_map = lid.expand_pixels(filtered_lidar_map, box_size=5)
-        lid.display_map(display, filtered_lidar_map)
+        grippee.tele_increment([-1, 0, 0])
+    elif key == ord('W'):
+        grippee.tele_increment([1, 0, 0])
+    elif key ==ord("A"):
+        grippee.tele_increment([0, -1, 0])
+    elif key == ord("D"):
+        grippee.tele_increment([0, 1, 0])
+    elif key == ord("E"):
+        grippee.tele_increment([0, 0, 1])
+    elif key == ord("Q"):
+        grippee.tele_increment([0, 0, -1])
+    elif key == ord("O"):
+        grippee.openGrip()
+    elif key == ord("C"):
+        grippee.closeGrip()
+    elif key == ord("G"):
+        # go to basked
+        grippee.move_to_basket()
+    elif key == ord("H"):
+        # go to viewport
+        grippee.move_arm_to_position([0, -.3, -.25])
+    else: pass
+    
+    # if key == ord('S'):
+    #     print("filtering...")
+    #     filtered_lidar_map = lid.filter_lidar_map(lidar_map)
+    #     filtered_lidar_map = lid.expand_pixels(filtered_lidar_map, box_size=5)
+    #     lid.display_map(display, filtered_lidar_map)
 
-        current_map_position = lid.globalcoords_to_map_coords(pose_x, pose_y)
-        # update based on new map
-        frontiers, unknown, explored, obstacles = rrt.map_update(filtered_lidar_map)
-        # print(frontiers)
-        goal_point = rrt.get_random_frontier_vertex()
-        bounds = np.array([[0,360],[0,360]])
-        node_list, map_waypoints = rrt.rrt_star(filtered_lidar_map, bounds, rrt.obstacles, rrt.point_is_valid, current_map_position, goal_point, 200, 30)
-        print(node_list)
-        print(map_waypoints)
-        rrt.visualize_2D_graph(bounds, rrt.obstacles, node_list, goal_point, 'robot_rrt_star_run.png')
+    #     current_map_position = lid.globalcoords_to_map_coords(pose_x, pose_y)
+    #     # update based on new map
+    #     frontiers, unknown, explored, obstacles = rrt.map_update(filtered_lidar_map)
+    #     # print(frontiers)
+    #     goal_point = rrt.get_random_frontier_vertex()
+    #     bounds = np.array([[0,360],[0,360]])
+    #     node_list, map_waypoints = rrt.rrt_star(filtered_lidar_map, bounds, rrt.obstacles, rrt.point_is_valid, current_map_position, goal_point, 200, 30)
+    #     print(node_list)
+    #     print(map_waypoints)
+    #     rrt.visualize_2D_graph(bounds, rrt.obstacles, node_list, goal_point, 'robot_rrt_star_run.png')
 
-        if map_waypoints is not None:
-            world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
-        else:
-            print("map_waypoints is None!")
-            world_waypoints = []
+    #     if map_waypoints is not None:
+    #         world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
+    #     else:
+    #         print("map_waypoints is None!")
+    #         world_waypoints = []
 
-        # world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
-        curr_waypoint = 0
+    #     # world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
+    #     curr_waypoint = 0
 
-    vels = ik.nav_to_waypoint(world_waypoints, curr_waypoint, pose_x, pose_y, pose_theta)
-    vL = vels[0]
-    vR = vels[1]
+    # vels = ik.nav_to_waypoint(world_waypoints, curr_waypoint, pose_x, pose_y, pose_theta)
+    # vL = vels[0]
+    # vR = vels[1]
 
     ##########################################################################################
     # MOVING
