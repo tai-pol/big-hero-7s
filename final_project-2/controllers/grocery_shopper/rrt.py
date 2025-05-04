@@ -113,7 +113,30 @@ def map_update(map):
     return frontiers, unknown, explored, obstacles
     
 def get_random_frontier_vertex():
-    return frontiers[np.random.randint(0, len(frontiers)-2)]
+    if len(frontiers) > 0:
+        return frontiers[np.random.randint(0, len(frontiers)-2)]
+
+def get_random_frontier_vertex_ahead(robot_map_x, robot_map_y, robot_theta):
+    ang_cutoff_start = 45
+    ang_cutoff_end = 135
+
+    frontiers_ahead = []
+    
+    for pt in frontiers:
+        angle = math.atan2(pt[1] - robot_map_y, pt[0] - robot_map_x)
+        angle = (angle - robot_theta + math.pi) % (2 * math.pi) - math.pi
+        
+        if angle >= math.radians(ang_cutoff_start) and angle <= math.radians(ang_cutoff_end):
+            frontiers_ahead.append(pt)
+
+    if len(frontiers_ahead) == 0:
+        return (0,0), False
+    
+    return frontiers_ahead[np.random.randint(0, len(frontiers_ahead)-2)], True
+
+# returns the world angle theta that the vector between the two last waypoints create
+def get_last_waypoint_direction(p1, p2):
+    return  math.atan2(p2[1] - p1[1], p2[0] - p1[0])
 
 def get_random_valid_vertex():
     return explored[np.random.randint(0, len(explored)-2)]
@@ -183,6 +206,14 @@ def steer(from_point, to_point, delta_q):
 
     return path
 
+def get_nearby_nodes(node_list, q_point, radius):
+    q_point = np.array(q_point)
+    points = np.array([node.point for node in node_list])
+    dists = np.linalg.norm(points - q_point, axis=1)
+    
+    nearby_indices = np.where(dists <= radius)[0]
+    return [node_list[i] for i in nearby_indices]
+
 
 # use this method to retrieve waypoints for the robot to navigate to a frontier
 def rrt_star(map, state_bounds, obstacles, point_is_valid, starting_point, goal_point, k, delta_q):
@@ -199,16 +230,6 @@ def rrt_star(map, state_bounds, obstacles, point_is_valid, starting_point, goal_
     node_list.append(starting_node) # Add Node at starting point with no parent
     path_to_source = []
 
-    print(frontiers)
-
-    def get_nearby_nodes(center_point):
-        nearby = []
-        for node in node_list:
-            if math.dist(center_point, node.point) <= delta_q:
-                nearby.append(node)
-
-        return nearby
-
     for i in range(k):
         q_rand = []
         rand_num = random.random()
@@ -222,16 +243,17 @@ def rrt_star(map, state_bounds, obstacles, point_is_valid, starting_point, goal_
         path_to_new_node = steer(q_near.point, q_rand, delta_q)
         new_node_point = path_to_new_node[len(path_to_new_node)-1]
 
-        nearby_nodes = get_nearby_nodes(new_node_point)
+        nearby_nodes = get_nearby_nodes(node_list, new_node_point, delta_q)
 
         min_cost = math.inf
         min_cost_node = None
 
         # finding the nearby node that has the smallest cost
-        for curr in nearby_nodes:
-            if curr.cost < min_cost:
-                min_cost = curr.cost
-                min_cost_node = curr
+        costs = np.array([node.cost for node in nearby_nodes])
+        if len(costs) != 0:
+            min_cost_index = np.argmin(costs)
+            min_cost_node = nearby_nodes[min_cost_index]
+            min_cost = min_cost_node.cost
 
         # if the smallest cost in nearby nodes is smaller than the original q_near cost, then make this smallest cost node the new parent of q_new
         if min_cost < q_near.cost:
@@ -279,7 +301,9 @@ def rrt_star(map, state_bounds, obstacles, point_is_valid, starting_point, goal_
             path_to_source.reverse()
             return node_list, path_to_source
 
-    return node_list, path_to_source.reverse()
+    print('DID NOT FIND PATH TO THE GOAL')
+    path_to_source.reverse()
+    return node_list, path_to_source
 
 if __name__ == "__main__":
     testing_map = np.zeros(shape=[360,360])
@@ -298,4 +322,3 @@ if __name__ == "__main__":
     K = 200
     nodes_rrtstar, waypoints = rrt_star(testing_map, bounds, obstacles, point_is_valid, starting_point, goal_point, K, 30)
     visualize_2D_graph(bounds, obstacles, nodes_rrtstar, goal_point, 'rrt_star_run1.png')
-    # print(obstacles)
