@@ -103,3 +103,16 @@ class Gripper:
         # print("moving to: ", self.target)
         self.move_arm_to_position(self.target)
     
+    def reset_motors(self):
+        part_names = ("head_2_joint", "head_1_joint", "torso_lift_joint", "arm_1_joint",
+              "arm_2_joint",  "arm_3_joint",  "arm_4_joint",      "arm_5_joint",
+              "arm_6_joint",  "arm_7_joint",  "wheel_left_joint", "wheel_right_joint",
+              "gripper_left_finger_joint","gripper_right_finger_joint")
+        
+        target_pos = (0.0, 0.0, 0, 0.07, 1.02, 0, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf',0.045,0.045)
+
+        robot_parts={}
+        for i, part_name in enumerate(part_names):
+            robot_parts[part_name]= self.robot.getDevice(part_name)
+            robot_parts[part_name].setPosition(float(target_pos[i]))
+            robot_parts[part_name].setVelocity(robot_parts[part_name].getMaxVelocity() / 2.0)

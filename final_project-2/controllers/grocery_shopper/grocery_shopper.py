@@ -182,6 +182,8 @@ while robot.step(timestep) != -1:
     elif key == ord("H"):
         # go to viewport
         grippee.move_arm_to_position([0, -.3, -.25])
+    elif key == ord("R"):
+        grippee.reset_motors()
     else: pass
     
     # if key == ord('S'):
