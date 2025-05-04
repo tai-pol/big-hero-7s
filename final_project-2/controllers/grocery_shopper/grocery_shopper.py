@@ -256,6 +256,7 @@ while robot.step(timestep) != -1:
 
     vL = vels[0]
     vR = vels[1]
+    cv.run_cv(camera,depth_cam)
 
     # if it's the beginning of program or if we've reached our frontier point, filter the lidar map
     # if len(world_waypoints) == 0 or curr_waypoint == len(world_waypoints):
