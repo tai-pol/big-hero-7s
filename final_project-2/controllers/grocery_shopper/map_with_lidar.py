@@ -125,6 +125,8 @@ def make_lidar_map(pose_x, pose_y, pose_theta, curr_map, lidar_sensor_readings, 
     # Draw the robot's current pose on the 360x360 display
     display.setColor(int(0xFF0000))
     display.drawPixel(360-abs(int(pose_x)), abs(int(pose_y)))
+
+    return True
     
     
     

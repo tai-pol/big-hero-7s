@@ -86,14 +86,17 @@ display = robot.getDevice("display")
 keyboard = robot.getKeyboard()
 keyboard.enable(timestep)
 
+# RRT and Path Planning
 curr_waypoint = 0
 elapsed_time = 0
-prev_time = 0
 forward_state = 0
-rrt_state = 'goal'
 map_waypoints = []
 world_waypoints = []
 forward_state = 0
+node_list = []
+last_waypoints_angle = 0
+ahead_goal_attempts = 0
+valid_goal = True
 
 # Odometry
 pose_x     = 0
@@ -106,7 +109,10 @@ vR = 0
 lidar_sensor_readings = [] # List to hold sensor readings
 lidar_offsets = np.linspace(-LIDAR_ANGLE_RANGE/2., +LIDAR_ANGLE_RANGE/2., LIDAR_ANGLE_BINS)
 lidar_offsets = lidar_offsets[83:len(lidar_offsets)-83] # Only keep lidar readings not blocked by robot chassis
-
+lidar_threshold = 0.6 # if object in front of robot is within this meter threshold
+lidar_front_readings = []
+lidar_center = 250
+lidar_width = 75
 
 
 # ------------------------------------------------------------------
@@ -119,7 +125,16 @@ gripper_status="closed"
 # important variables
 lidar_map = np.zeros(shape=[360,360])
 filtered_lidar_map = np.zeros(shape=[360,360])
-current_map_location = ()
+lidar_map_generated = False
+
+def reset_variables():
+    global map_waypoints, world_waypoints, node_list, last_waypoints_angle, valid_goal, ahead_goal_attempts
+    map_waypoints = []
+    world_waypoints = []
+    node_list = []
+    last_waypoints_angle = pose_theta
+    valid_goal = True
+    ahead_goal_attempts = 0
 
 # Main Loop
 while robot.step(timestep) != -1:
@@ -137,9 +152,11 @@ while robot.step(timestep) != -1:
     n = compass.getValues()
     rad = -((math.atan2(n[0], n[2]))-1.5708)
     pose_theta = rad
+    world_theta = pose_theta + math.pi/2
 
     lidar_sensor_readings = lidar.getRangeImage()
     lidar_sensor_readings = lidar_sensor_readings[83:len(lidar_sensor_readings)-83]
+    lidar_front_readings = lidar_sensor_readings[lidar_center - lidar_width : lidar_center + lidar_width + 1]
     current_map_location = lid.globalcoords_to_map_coords(pose_x, pose_y)
     
     ##########################################################################################
@@ -147,70 +164,55 @@ while robot.step(timestep) != -1:
     ##########################################################################################
 
     # make/update the lidar map on every robot step
-    lid.make_lidar_map(pose_x, pose_y, pose_theta, lidar_map, lidar_sensor_readings, display)
+    lidar_map_generated = lid.make_lidar_map(pose_x, pose_y, pose_theta, lidar_map, lidar_sensor_readings, display)
     
     key = keyboard.getKey()
-    print(key)
-    if key == ord('S'):
+
+    if (curr_waypoint == len(world_waypoints)-1 or len(map_waypoints) == 0) and lidar_map_generated:
+        reset_variables()
         print("filtering...")
         filtered_lidar_map = lid.filter_lidar_map(lidar_map)
-        filtered_lidar_map = lid.expand_pixels(filtered_lidar_map, box_size=5)
+        filtered_lidar_map = lid.expand_pixels(filtered_lidar_map, box_size=10)
         lid.display_map(display, filtered_lidar_map)
 
         current_map_position = lid.globalcoords_to_map_coords(pose_x, pose_y)
-        # update based on new map
         frontiers, unknown, explored, obstacles = rrt.map_update(filtered_lidar_map)
-        # print(frontiers)
-        goal_point = rrt.get_random_frontier_vertex()
         bounds = np.array([[0,360],[0,360]])
-        node_list, map_waypoints = rrt.rrt_star(filtered_lidar_map, bounds, rrt.obstacles, rrt.point_is_valid, current_map_position, goal_point, 200, 30)
-        print(node_list)
-        print(map_waypoints)
-        rrt.visualize_2D_graph(bounds, rrt.obstacles, node_list, goal_point, 'robot_rrt_star_run.png')
 
-        if map_waypoints is not None:
+        while len(map_waypoints) == 0 and len(frontiers) != 0:
+            if valid_goal == True:
+                goal_point, valid_goal = rrt.get_random_frontier_vertex_ahead(current_map_position[0], current_map_position[1], last_waypoints_angle)
+            else:
+                goal_point = rrt.get_random_frontier_vertex()
+
+            node_list, map_waypoints = rrt.rrt_star(filtered_lidar_map, bounds, rrt.obstacles, rrt.point_is_valid, current_map_position, goal_point, 500, 30)
+            if len(node_list) > 0:
+                rrt.visualize_2D_graph(bounds, rrt.obstacles, node_list, goal_point, 'robot_rrt_star_run.png')
+
+        if map_waypoints is not None and len(map_waypoints) > 0:
             world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
         else:
             print("map_waypoints is None!")
-            world_waypoints = []
 
-        # world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
         curr_waypoint = 0
+        elapsed_time = 0
+    
+    print('pos: ', pose_x, pose_y, world_theta)
+    
+    valid_goal = True
 
-    vels = ik.nav_to_waypoint(world_waypoints, curr_waypoint, pose_x, pose_y, pose_theta)
+    if (len(lidar_front_readings) > 0):
+        print('lowest front lidar reading: ', np.min(np.array(lidar_front_readings)))
+    if np.any(np.array(lidar_front_readings) < lidar_threshold):
+        reset_variables()
+        print('AVOIDING OBJECT!')
+
+    if len(map_waypoints) > 1:
+        last_waypoints_angle = rrt.get_last_waypoint_direction(map_waypoints[-1], map_waypoints[-2])
+    vels, curr_waypoint = ik.nav_to_waypoint(world_waypoints, curr_waypoint, pose_x, pose_y, world_theta)
+
     vL = vels[0]
     vR = vels[1]
-
-    # if it's the beginning of program or if we've reached our frontier point, filter the lidar map
-    # if len(world_waypoints) == 0 or curr_waypoint == len(world_waypoints):
-    #     print("filtering...")
-    #     filtered_lidar_map = lid.filter_lidar_map(lidar_map)
-    #     lid.display_map(display, filtered_lidar_map)
-
-    #     current_map_position = lid.globalcoords_to_map_coords(pose_x, pose_y)
-    #     # update based on new map
-    #     rrt.map_update(filtered_lidar_map, current_map_position)
-    #     goal_point = rrt.get_random_frontier_vertex()
-    #     bounds = np.array([[0,360],[0,360]])
-    #     node_list, map_waypoints = rrt.rrt_star(filtered_lidar_map, bounds, rrt.obstacles, rrt.point_is_valid, current_map_position, goal_point, 200, 30)
-    #     rrt.visualize_2D_graph(bounds, rrt.obstacles, node_list, goal_point, 'robot_rrt_star_run.png')
-
-    #     if map_waypoints is not None:
-    #         world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
-    #     else:
-    #         print("map_waypoints is None!")
-    #         world_waypoints = []
-
-    #     # world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
-    #     curr_waypoint = 0
-    
-    # key = keyboard.getKey()
-    # print(key)
-    # if key == ord('S'):
-        # print("filtering...")
-        # filtered_lidar_map = lid.filter_lidar_map(lidar_map)
-        # lid.display_map(display, filtered_lidar_map)
-    
     
     ##########################################################################################
     # MOVING

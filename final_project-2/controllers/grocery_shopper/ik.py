@@ -26,11 +26,11 @@ def turn_to_goal(ang_to_goal: float, is_proportional=True) -> tuple:
     """ takes in the angle and turns if not facing -> returns true if it is facing the goal otherwise returns false"""
     
     # tuning variables r here
-    err_margin = .5
-    turn_speed = .07 # default value will change this
+    err_margin = .1
+    turn_speed = .04 # default value will change this
     min_turn_speed = .01
-    max_turn_speed = .25
-    portional_gain = .3
+    max_turn_speed = .15
+    portional_gain = .2
     
     # this part does makes it turn faster the further it is
     if is_proportional:
@@ -41,7 +41,6 @@ def turn_to_goal(ang_to_goal: float, is_proportional=True) -> tuple:
         
     if turn_speed < min_turn_speed:
         turn_speed = min_turn_speed
-
     
     if not (ang_to_goal < err_margin and ang_to_goal > -err_margin):
         if ang_to_goal > 0:
@@ -75,12 +74,25 @@ def reach_position(distance_to_goal, is_proportional=True) -> tuple:
 
     return None
 
+def spin_360():
+    return (MAX_SPEED*0.5, -MAX_SPEED*0.5)
 
+# returns wheel velocities to reach next waypoint
 def nav_to_waypoint(waypoints, curr_waypoint, pose_x, pose_y, pose_theta):
     if len(waypoints) == 0:
         print('waypoints is currently none')
-        return (0, 0)
+        return (0, 0), 0
     
+    if (curr_waypoint == len(waypoints)-1):
+        print('end of waypoints')
+        return (0, 0), len(waypoints)-1
+    
+    # skip the waypoint if it's within the robot's radius
+    if math.dist([pose_x, pose_y], waypoints[curr_waypoint]) <= AXLE_LENGTH/2:
+        curr_waypoint += 1
+        return (0, 0), curr_waypoint
+    
+    print('waypoint #:', curr_waypoint)
     print('curr waypoint:', waypoints[curr_waypoint])
 
     goal_pos = waypoints[curr_waypoint]
@@ -90,13 +102,15 @@ def nav_to_waypoint(waypoints, curr_waypoint, pose_x, pose_y, pose_theta):
 
     # calculate the angle to goal
     ang_to_goal = math.atan2(goal_pos[1] - pose_y, goal_pos[0] - pose_x)
-    print('ANGLE', ang_to_goal)
+    
     print('GOALS', goal_pos)
     print('WAYPOINTS LENGTH', len(waypoints))
     
     ang_to_goal = (ang_to_goal - pose_theta + math.pi) % (2 * math.pi) - math.pi
+    print('ANGLE TO GOAL', ang_to_goal)
 
     vels = turn_to_goal(ang_to_goal, True)
+    print('vels returned by turn_to_goal', vels)
     if vels is None:
         vels = reach_position(euc_dis, True)
         if vels is None:
@@ -104,4 +118,4 @@ def nav_to_waypoint(waypoints, curr_waypoint, pose_x, pose_y, pose_theta):
                 curr_waypoint += 1
             vels = (0, 0)
 
-    return vels
+    return vels, curr_waypoint
