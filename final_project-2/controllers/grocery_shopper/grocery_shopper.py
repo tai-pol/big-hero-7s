@@ -12,6 +12,7 @@ from ikpy.chain import Chain
 from ikpy.link import OriginLink, URDFLink
 import ikpy.utils.plot as plot_utils
 import time
+import gripper as grip
 
 # our files
 import map_with_lidar as lid
@@ -36,6 +37,7 @@ LIDAR_ANGLE_RANGE = math.radians(240)
 # create the Robot instance.
 robot = Robot()
 
+
 # get the time step of the current world.
 timestep = int(robot.getBasicTimeStep())
 
@@ -49,7 +51,7 @@ part_names = ("head_2_joint", "head_1_joint", "torso_lift_joint", "arm_1_joint",
 
 # All motors except the wheels are controlled by position control. The wheels
 # are controlled by a velocity controller. We therefore set their position to infinite.
-target_pos = (0.0, 0.0, 0.35, 0.07, 1.02, -3.16, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf',0.045,0.045)
+target_pos = (0.0, 0.0, 0, 0.07, 1.02, 0, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf',0.045,0.045)
 
 robot_parts={}
 for i, part_name in enumerate(part_names):
@@ -62,6 +64,8 @@ left_gripper_enc=robot.getDevice("gripper_left_finger_joint_sensor")
 right_gripper_enc=robot.getDevice("gripper_right_finger_joint_sensor")
 left_gripper_enc.enable(timestep)
 right_gripper_enc.enable(timestep)
+
+grippee = grip.Gripper(robot)
 
 # Enable Camera
 camera = robot.getDevice('camera')
@@ -78,6 +82,10 @@ compass.enable(timestep)
 lidar = robot.getDevice('Hokuyo URG-04LX-UG01')
 lidar.enable(timestep)
 lidar.enablePointCloud()
+
+# Enable range
+# range_finder = robot.getDevice('range-finder')
+# range_finder.enable(timestep)
 
 # Enable display
 display = robot.getDevice("display")
@@ -167,6 +175,29 @@ while robot.step(timestep) != -1:
     lidar_map_generated = lid.make_lidar_map(pose_x, pose_y, pose_theta, lidar_map, lidar_sensor_readings, display)
     
     key = keyboard.getKey()
+    if key == ord('S'):
+        grippee.tele_increment([-1, 0, 0])
+    elif key == ord('W'):
+        grippee.tele_increment([1, 0, 0])
+    elif key ==ord("A"):
+        grippee.tele_increment([0, -1, 0])
+    elif key == ord("D"):
+        grippee.tele_increment([0, 1, 0])
+    elif key == ord("E"):
+        grippee.tele_increment([0, 0, 1])
+    elif key == ord("Q"):
+        grippee.tele_increment([0, 0, -1])
+    elif key == ord("O"):
+        grippee.openGrip()
+    elif key == ord("C"):
+        grippee.closeGrip()
+    elif key == ord("G"):
+        # go to basked
+        grippee.move_to_basket()
+    elif key == ord("H"):
+        # go to viewport
+        grippee.move_arm_to_position([0, -.3, -.25])
+    else: pass
 
     if (curr_waypoint == len(world_waypoints)-1 or len(map_waypoints) == 0) and lidar_map_generated:
         reset_variables()
@@ -220,20 +251,3 @@ while robot.step(timestep) != -1:
     
     robot_parts["wheel_left_joint"].setVelocity(vL)
     robot_parts["wheel_right_joint"].setVelocity(vR)
-    
-    
-    ##########################################################################################
-    # GRABBING ARM
-    ##########################################################################################
-    if(gripper_status=="open"):
-        # Close gripper, note that this takes multiple time steps...
-        robot_parts["gripper_left_finger_joint"].setPosition(0)
-        robot_parts["gripper_right_finger_joint"].setPosition(0)
-        if right_gripper_enc.getValue()<=0.005:
-            gripper_status="closed"
-    else:
-        # Open gripper
-        robot_parts["gripper_left_finger_joint"].setPosition(0.045)
-        robot_parts["gripper_right_finger_joint"].setPosition(0.045)
-        if left_gripper_enc.getValue()>=0.044:
-            gripper_status="open"
