@@ -951,7 +951,7 @@ DEF beer_bottles Pose {
   ]
 }
 TiagoSteel {
-  translation -5.46575238241097 1.6487524543554413 0.08822755399683702
+  translation -5.54606 2.04937 0.0882276
   rotation 0.08546452422531339 0.1332683324424634 -0.9873881540037565 0
   controller "grocery_shopper"
   cameraSlot [
