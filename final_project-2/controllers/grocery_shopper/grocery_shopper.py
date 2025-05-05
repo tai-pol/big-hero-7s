@@ -65,6 +65,7 @@ right_gripper_enc=robot.getDevice("gripper_right_finger_joint_sensor")
 left_gripper_enc.enable(timestep)
 right_gripper_enc.enable(timestep)
 
+# initialize the teleoperation class with a reference to the robot for IK
 grippee = grip.Gripper(robot)
 
 # Enable Camera
@@ -153,60 +154,65 @@ while robot.step(timestep) != -1:
     pose_x = gps.getValues()[0]
     pose_y = gps.getValues()[1]
     
-
-    elapsed_time += timestep / 1000.0
-    delta_time = timestep / 1000.0
-    
     n = compass.getValues()
     rad = -((math.atan2(n[0], n[2]))-1.5708)
     pose_theta = rad
     world_theta = pose_theta + math.pi/2
 
+    elapsed_time += timestep / 1000.0
+    delta_time = timestep / 1000.0
+    
+    
+    
+    ##########################################################################################
+    # LIDAR/MAPS
+    ##########################################################################################
     lidar_sensor_readings = lidar.getRangeImage()
     lidar_sensor_readings = lidar_sensor_readings[83:len(lidar_sensor_readings)-83]
     lidar_front_readings = lidar_sensor_readings[lidar_center - lidar_width : lidar_center + lidar_width + 1]
     current_map_location = lid.globalcoords_to_map_coords(pose_x, pose_y)
     
-    ##########################################################################################
-    # LIDAR/MAPS
-    ##########################################################################################
-
-    # make/update the lidar map on every robot step
+    # update the lidar map on every robot step by adding to explored space and obstacle space
     lidar_map_generated = lid.make_lidar_map(pose_x, pose_y, pose_theta, lidar_map, lidar_sensor_readings, display)
     
+    
+    ##########################################################################################
+    # teleoperation - moving the arm
+    ##########################################################################################
     key = keyboard.getKey()
-    if key == ord('S'):
+    if key == ord('S'):  # Move backward
         grippee.tele_increment([-1, 0, 0])
-    elif key == ord('W'):
+    elif key == ord('W'):  # Move forward
         grippee.tele_increment([1, 0, 0])
-    elif key ==ord("A"):
+    elif key == ord('A'):  # Move left
         grippee.tele_increment([0, -1, 0])
-    elif key == ord("D"):
+    elif key == ord('D'):  # Move right
         grippee.tele_increment([0, 1, 0])
-    elif key == ord("E"):
+    elif key == ord('E'):  # Move up
         grippee.tele_increment([0, 0, 1])
-    elif key == ord("Q"):
+    elif key == ord('Q'):  # Move down
         grippee.tele_increment([0, 0, -1])
-    elif key == ord("O"):
+    elif key == ord('O'):  # Open grip
         grippee.openGrip()
-    elif key == ord("C"):
+    elif key == ord('C'):  # Close grip
         grippee.closeGrip()
-    elif key == ord("G"):
-        # go to basked
+    elif key == ord('G'):  # Go to basket
         grippee.move_to_basket()
-    elif key == ord("H"):
-        # go to viewport
+    elif key == ord('H'):  # Go to viewport
         grippee.move_arm_to_position([0, -.3, -.25])
-    elif key == ord("R"):
+    elif key == ord('R'):  # Reset motors
         grippee.reset_motors()
-    else: pass
 
+
+    ##########################################################################################
+    # RRT
+    ##########################################################################################
     if (curr_waypoint == len(world_waypoints)-1 or len(map_waypoints) == 0) and lidar_map_generated:
         reset_variables()
         print("filtering...")
-        filtered_lidar_map = lid.filter_lidar_map(lidar_map)
-        filtered_lidar_map = lid.expand_pixels(filtered_lidar_map, box_size=10)
-        lid.display_map(display, filtered_lidar_map)
+        filtered_lidar_map = lid.filter_lidar_map(lidar_map) # change the raw values to 0, 1, 2 with 1 being explored 2 being obstacles
+        filtered_lidar_map = lid.expand_pixels(filtered_lidar_map, box_size=10) # expands the area around each pixel with 2s taking priority
+        lid.display_map(display, filtered_lidar_map) # add the map to the display drawing red as obstacles and blue as explored
 
         current_map_position = lid.globalcoords_to_map_coords(pose_x, pose_y)
         frontiers, unknown, explored, obstacles = rrt.map_update(filtered_lidar_map)
