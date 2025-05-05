@@ -55,7 +55,7 @@ part_names = ("head_2_joint", "head_1_joint", "torso_lift_joint", "arm_1_joint",
 
 # All motors except the wheels are controlled by position control. The wheels
 # are controlled by a velocity controller. We therefore set their position to infinite.
-target_pos = (0.0, 0.0, 0, 0.07, 1.02, 0, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf',0.045,0.045)
+target_pos = (0.0, 0.0, 0, 1.5, 1.02, -3, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf',0.045,0.045)
 
 robot_parts={}
 for i, part_name in enumerate(part_names):
