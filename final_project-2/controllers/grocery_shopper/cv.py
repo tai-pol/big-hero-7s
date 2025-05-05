@@ -7,27 +7,27 @@ from controller import Robot, Camera, Keyboard
 
 
 #initialising
-robot = Robot()
-timestep = int(robot.getBasicTimeStep())
+# robot = Robot()
+# timestep = int(robot.getBasicTimeStep())
 
-camera = robot.getDevice('camera')
-camera.enable(timestep)
-camera.recognitionEnable(timestep) 
+# camera = robot.getDevice('camera')
+# camera.enable(timestep)
+# camera.recognitionEnable(timestep) 
 
-depth_cam = robot.getDevice('range-finder')
-depth_cam.enable(timestep)
-depth_W = depth_cam.getWidth()
-depth_H = depth_cam.getHeight()
+# depth_cam = robot.getDevice('range-finder')
+# depth_cam.enable(timestep)
+# depth_W = depth_cam.getWidth()
+# depth_H = depth_cam.getHeight()
 
-kbd = robot.getKeyboard()
-kbd.enable(timestep)
+# kbd = robot.getKeyboard()
+# kbd.enable(timestep)
 
-robot_parts=[]
-yaw_motor   = robot.getDevice("head_1_joint")
-pitch_motor = robot.getDevice("head_2_joint")
+# robot_parts=[]
+# yaw_motor   = robot.getDevice("head_1_joint")
+# pitch_motor = robot.getDevice("head_2_joint")
 
-yaw_sensor   = yaw_motor.getPositionSensor();   yaw_sensor.enable(timestep)
-pitch_sensor = pitch_motor.getPositionSensor(); pitch_sensor.enable(timestep)
+# yaw_sensor   = yaw_motor.getPositionSensor();   yaw_sensor.enable(timestep)
+# pitch_sensor = pitch_motor.getPositionSensor(); pitch_sensor.enable(timestep)
 N_PARTS = 12
 
 #idk where pan joint actaully is lol
@@ -48,24 +48,24 @@ part_names = ("head_2_joint", "head_1_joint", "torso_lift_joint", "arm_1_joint",
 
 target_pos = (-0.4, 0.0, 0.09, 0.07, 1.02, -3.16, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf')
 
-for i in range(N_PARTS-2):
-    robot_parts.append(robot.getDevice(part_names[i]))
-    robot_parts[i].setPosition(float(target_pos[i]))
-    robot_parts[i].setVelocity(robot_parts[i].getMaxVelocity() / 2.0)
+# for i in range(N_PARTS-2):
+#     robot_parts.append(robot.getDevice(part_names[i]))
+#     robot_parts[i].setPosition(float(target_pos[i]))
+#     robot_parts[i].setVelocity(robot_parts[i].getMaxVelocity() / 2.0)
 
-wheel_left  = robot.getDevice("wheel_left_joint")
-wheel_right = robot.getDevice("wheel_right_joint")
-wheel_left.setVelocity(0.0)           
-wheel_right.setVelocity(0.0)
+# wheel_left  = robot.getDevice("wheel_left_joint")
+# # wheel_right = robot.getDevice("wheel_right_joint")
+# wheel_left.setVelocity(0.0)           
+# wheel_right.setVelocity(0.0)
 # set camera properties
-FIELD_OF_VIEW = camera.getFov()
-CAMERA_HEIGHT = camera.getHeight()
-CAMERA_WIDTH = camera.getWidth()
-FOCAL_LENGTH = camera.getFocalLength()
+# FIELD_OF_VIEW = camera.getFov()
+# CAMERA_HEIGHT = camera.getHeight()
+# CAMERA_WIDTH = camera.getWidth()
+# FOCAL_LENGTH = camera.getFocalLength()
 
 
 
-focal_length_px = (CAMERA_WIDTH / 2) / np.tan(FIELD_OF_VIEW / 2)
+# focal_length_px = (CAMERA_WIDTH / 2) / np.tan(FIELD_OF_VIEW / 2)
 
 #TRAINED MODELLLLLLLL AYAYAYA
 model = YOLO('best.pt') 
@@ -74,17 +74,21 @@ CONF = .25
 CUBE_ID = 0 
 
 # camera matrix
-K = np.array([
-    [focal_length_px, 0, CAMERA_WIDTH / 2],
-    [0, focal_length_px, CAMERA_HEIGHT / 2],
-    [0, 0, 1]
-])
+# K = np.array([
+#     [focal_length_px, 0, CAMERA_WIDTH / 2],
+#     [0, focal_length_px, CAMERA_HEIGHT / 2],
+#     [0, 0, 1]
+# ])
 
     
 def run_cv(camera, depth_cam):
     raw = camera.getImage()
+    CAMERA_HEIGHT = camera.getHeight()
+    CAMERA_WIDTH = camera.getWidth()
     bgra  = np.frombuffer(raw, np.uint8).reshape((CAMERA_HEIGHT, CAMERA_WIDTH, 4))
     bgr   = cv2.cvtColor(bgra, cv2.COLOR_BGRA2BGR)
+    depth_W = depth_cam.getWidth()
+    depth_H = depth_cam.getHeight()
 
     result = model.predict(bgr, conf=CONF, verbose=False)[0]
     found = False
