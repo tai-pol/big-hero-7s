@@ -48,13 +48,12 @@ class Gripper:
     def move_arm_to_position(self, target=[0, -.5, 0], plot = False):
         """
         Moves the arm to a specified target position.
+        center of arm part 0, -.5, .5
+        robot -y, z, -x
         
         :param target: The target position to move the arm to. Defaults to [0, -.5, 0].
         :param plot: If True, plots the arm movement. Defaults to False.
         """
-        
-        """center of arm part 0, -.5, .5
-        robot -y, z, -x"""
         
         # print(self.armChain.forward_kinematics([0,0,0,0] + [m.getPositionSensor().getValue() for m in self.motors] + [0,0,0]))
         self.target = target
