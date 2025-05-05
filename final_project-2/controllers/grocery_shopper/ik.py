@@ -26,7 +26,7 @@ def turn_to_goal(ang_to_goal: float, is_proportional=True) -> tuple:
     """ takes in the angle and turns if not facing -> returns true if it is facing the goal otherwise returns false"""
     
     # tuning variables r here
-    err_margin = .1
+    err_margin = .2
     turn_speed = .04 # default value will change this
     min_turn_speed = .01
     max_turn_speed = .15
@@ -76,6 +76,9 @@ def reach_position(distance_to_goal, is_proportional=True) -> tuple:
 
 def spin_360():
     return (MAX_SPEED*0.5, -MAX_SPEED*0.5)
+
+def backup_from_obstacle():
+    return (-MAX_SPEED*0.5, -MAX_SPEED*0.5)
 
 # returns wheel velocities to reach next waypoint
 def nav_to_waypoint(waypoints, curr_waypoint, pose_x, pose_y, pose_theta):
