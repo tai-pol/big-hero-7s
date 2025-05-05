@@ -23,7 +23,7 @@ obstacles = [] # map value of 2
 node_list = [] # list of nodes being navigated to in the map
 current_position = ()
 
-# for testing purposes - NOT FINISHED YET!
+# for testing purposes 
 def visualize_2D_graph(state_bounds, obstacles, nodes, goal_point=None, filename=None):
     '''
     @param state_bounds Array of min/max for each dimension
@@ -85,13 +85,6 @@ def map_update(map):
     global frontiers, unknown, explored, obstacles
 
     rows, cols = map.shape
-
-    # for i in range(-clear_radius, clear_radius + 1):
-    #     for j in range(-clear_radius, clear_radius + 1):
-    #         map_i = int(robot_y + i)
-    #         map_j = int(robot_x + j)
-    #         if 0 <= map_i < rows and 0 <= map_j < cols:
-    #             map[map_i, map_j] = 1
 
     frontiers.clear()
     unknown.clear()
@@ -178,10 +171,6 @@ def point_is_valid(point, map: np.array):
     else:
         return False
 
-# END BASE CODE
-#####################################
-
-
 def get_nearest_vertex(node_list, q_point):
     '''
     @param node_list: List of Node objects
@@ -224,9 +213,6 @@ def steer(from_point, to_point, delta_q):
     path = np.linspace(from_point, to_point, 10, True)
 
     path = [np.round(point).astype(int) for point in path]
-
-    # for point in path:
-    #     point = np.round(point, 0) # rounds the point to the nearest (x, y) indices in the map - needed for checking obstacles later
 
     return path
 

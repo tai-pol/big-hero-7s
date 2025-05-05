@@ -23,7 +23,7 @@ def inverse_wheel_kinematics(distance, delta_theta, timestep, axle_diameter=AXLE
     return vL, vR
 
 def turn_to_goal(ang_to_goal: float, is_proportional=True) -> tuple:
-    """ takes in the angle and turns if not facing -> returns true if it is facing the goal otherwise returns false"""
+    """ takes in the angle and turns if not facing -> returns no wheel velocities if it is facing the goal otherwise returns wheel velocities to turn to the goal"""
     
     # tuning variables r here
     err_margin = .2
@@ -50,7 +50,7 @@ def turn_to_goal(ang_to_goal: float, is_proportional=True) -> tuple:
     return None
 
 def reach_position(distance_to_goal, is_proportional=True) -> tuple:
-    """goes foward until the distance is within the error -> ruturns true is it has reached the goal"""
+    """goes forward until the distance is within the error -> returns none if it has reached the goal"""
     # global leftMotor, rightMotor, leftMax, rightMax
     
     # tuning variables r here
