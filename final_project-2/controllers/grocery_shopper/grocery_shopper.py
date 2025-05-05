@@ -3,6 +3,8 @@
 # Apr 1, 2025
 from controller import Robot, Motor, Camera, RangeFinder, Lidar, Keyboard # type: ignore 
 import math
+import cv2
+from ultralytics import YOLO  
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.signal import convolve2d # Uncomment if you want to use something else for finding the configuration space
@@ -18,8 +20,10 @@ import gripper as grip
 import map_with_lidar as lid
 import rrt as rrt
 import ik as ik
+import cv as cv
 
-
+model = YOLO('best.pt') 
+CONF =.25
 
 #Initialization
 print("=== Initializing Grocery Shopper...")
@@ -67,6 +71,12 @@ right_gripper_enc.enable(timestep)
 
 # initialize the teleoperation class with a reference to the robot for IK
 grippee = grip.Gripper(robot)
+
+# Enable Range Finder
+depth_cam = robot.getDevice('range-finder')
+depth_cam.enable(timestep)
+depth_W = depth_cam.getWidth()
+depth_H = depth_cam.getHeight()
 
 # Enable Camera
 camera = robot.getDevice('camera')
@@ -252,6 +262,38 @@ while robot.step(timestep) != -1:
 
     vL = vels[0]
     vR = vels[1]
+    cv.run_cv(camera,depth_cam)
+
+    # if it's the beginning of program or if we've reached our frontier point, filter the lidar map
+    # if len(world_waypoints) == 0 or curr_waypoint == len(world_waypoints):
+    #     print("filtering...")
+    #     filtered_lidar_map = lid.filter_lidar_map(lidar_map)
+    #     lid.display_map(display, filtered_lidar_map)
+
+    #     current_map_position = lid.globalcoords_to_map_coords(pose_x, pose_y)
+    #     # update based on new map
+    #     rrt.map_update(filtered_lidar_map, current_map_position)
+    #     goal_point = rrt.get_random_frontier_vertex()
+    #     bounds = np.array([[0,360],[0,360]])
+    #     node_list, map_waypoints = rrt.rrt_star(filtered_lidar_map, bounds, rrt.obstacles, rrt.point_is_valid, current_map_position, goal_point, 200, 30)
+    #     rrt.visualize_2D_graph(bounds, rrt.obstacles, node_list, goal_point, 'robot_rrt_star_run.png')
+
+    #     if map_waypoints is not None:
+    #         world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
+    #     else:
+    #         print("map_waypoints is None!")
+    #         world_waypoints = []
+
+    #     # world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
+    #     curr_waypoint = 0
+    
+    # key = keyboard.getKey()
+    # print(key)
+    # if key == ord('S'):
+        # print("filtering...")
+        # filtered_lidar_map = lid.filter_lidar_map(lidar_map)
+        # lid.display_map(display, filtered_lidar_map)
+    
     
     ##########################################################################################
     # MOVING
