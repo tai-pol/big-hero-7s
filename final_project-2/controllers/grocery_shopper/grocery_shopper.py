@@ -3,16 +3,8 @@
 # Apr 1, 2025
 from controller import Robot, Motor, Camera, RangeFinder, Lidar, Keyboard # type: ignore 
 import math
-import cv2
 from ultralytics import YOLO  
 import numpy as np
-from matplotlib import pyplot as plt
-from scipy.signal import convolve2d # Uncomment if you want to use something else for finding the configuration space
-import matplotlib.transforms as transforms
-import heapq
-from ikpy.chain import Chain
-from ikpy.link import OriginLink, URDFLink
-import ikpy.utils.plot as plot_utils
 import time
 import gripper as grip
 
