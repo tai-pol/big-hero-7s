@@ -1,5 +1,30 @@
 """grocery controller."""
 
+# HOW TO RUN
+
+# INSTALLS:
+# pip install ultralytics
+# pip install scipy
+
+# TO RUN:
+# Normal with webots file - just press play if running from github repository
+
+# ARM CONTROLLER
+# W: forward 
+# S: backward 
+# A: left 
+# D: right 
+# E: up 
+# Q: down 
+# O: open grip 
+# C: close grip 
+# R: reset if getting unreachable warning 
+# H: put arm in front of camera G: put arm in front of basket
+
+# WEBOTS WORLD CHANGES
+# Changed lidar angle so that it wasn't hitting the ground, rotated upwards.
+
+
 # Apr 1, 2025
 from controller import Robot, Motor, Camera, RangeFinder, Lidar, Keyboard # type: ignore 
 import math
