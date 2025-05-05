@@ -80,14 +80,23 @@ def visualize_2D_graph(state_bounds, obstacles, nodes, goal_point=None, filename
     else:
         plt.show()
 
+# def map_update(map, robot_x, ro bot_y, clear_radius):
 def map_update(map):
     global frontiers, unknown, explored, obstacles
+
+    rows, cols = map.shape
+
+    # for i in range(-clear_radius, clear_radius + 1):
+    #     for j in range(-clear_radius, clear_radius + 1):
+    #         map_i = int(robot_y + i)
+    #         map_j = int(robot_x + j)
+    #         if 0 <= map_i < rows and 0 <= map_j < cols:
+    #             map[map_i, map_j] = 1
 
     frontiers.clear()
     unknown.clear()
     explored.clear()
     obstacles.clear()
-    rows, cols = map.shape
     for i in range(rows):
         for j in range(cols):
             if map[i, j] == 1: # if the current element is explored
@@ -112,13 +121,28 @@ def map_update(map):
 
     return frontiers, unknown, explored, obstacles
     
+def get_nearest_explored_space(robot_x, robot_y, explored):
+    if not explored:
+        return None
+
+    min_dist = float('inf')
+    nearest = None
+
+    for coord in explored:
+        dist = math.hypot(coord[0] - robot_x, coord[1] - robot_y)
+        if dist < min_dist:
+            min_dist = dist
+            nearest = coord
+
+    return nearest
+
 def get_random_frontier_vertex():
     if len(frontiers) > 0:
         return frontiers[np.random.randint(0, len(frontiers)-2)]
 
 def get_random_frontier_vertex_ahead(robot_map_x, robot_map_y, robot_theta):
-    ang_cutoff_start = 45
-    ang_cutoff_end = 135
+    ang_cutoff_start = 75
+    ang_cutoff_end = 105
 
     frontiers_ahead = []
     
@@ -131,8 +155,8 @@ def get_random_frontier_vertex_ahead(robot_map_x, robot_map_y, robot_theta):
 
     if len(frontiers_ahead) == 0:
         return (0,0), False
-    
-    return frontiers_ahead[np.random.randint(0, len(frontiers_ahead)-2)], True
+    if len(frontiers_ahead) > 2:
+        return frontiers_ahead[np.random.randint(0, len(frontiers_ahead)-2)], True
 
 # returns the world angle theta that the vector between the two last waypoints create
 def get_last_waypoint_direction(p1, p2):

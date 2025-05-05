@@ -12,7 +12,6 @@ from ikpy.chain import Chain
 from ikpy.link import OriginLink, URDFLink
 import ikpy.utils.plot as plot_utils
 import time
-import gripper as grip
 
 # our files
 import map_with_lidar as lid
@@ -37,7 +36,6 @@ LIDAR_ANGLE_RANGE = math.radians(240)
 # create the Robot instance.
 robot = Robot()
 
-
 # get the time step of the current world.
 timestep = int(robot.getBasicTimeStep())
 
@@ -51,7 +49,7 @@ part_names = ("head_2_joint", "head_1_joint", "torso_lift_joint", "arm_1_joint",
 
 # All motors except the wheels are controlled by position control. The wheels
 # are controlled by a velocity controller. We therefore set their position to infinite.
-target_pos = (0.0, 0.0, 0, 0.07, 1.02, 0, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf',0.045,0.045)
+target_pos = (0.0, 0.0, 0.35, 0.07, 1.02, -3.16, 1.27, 1.32, 0.0, 1.41, 'inf', 'inf',0.045,0.045)
 
 robot_parts={}
 for i, part_name in enumerate(part_names):
@@ -64,8 +62,6 @@ left_gripper_enc=robot.getDevice("gripper_left_finger_joint_sensor")
 right_gripper_enc=robot.getDevice("gripper_right_finger_joint_sensor")
 left_gripper_enc.enable(timestep)
 right_gripper_enc.enable(timestep)
-
-grippee = grip.Gripper(robot)
 
 # Enable Camera
 camera = robot.getDevice('camera')
@@ -83,10 +79,6 @@ lidar = robot.getDevice('Hokuyo URG-04LX-UG01')
 lidar.enable(timestep)
 lidar.enablePointCloud()
 
-# Enable range
-# range_finder = robot.getDevice('range-finder')
-# range_finder.enable(timestep)
-
 # Enable display
 display = robot.getDevice("display")
 
@@ -94,17 +86,27 @@ display = robot.getDevice("display")
 keyboard = robot.getKeyboard()
 keyboard.enable(timestep)
 
-# RRT and Path Planning
 curr_waypoint = 0
 elapsed_time = 0
+prev_time = 0
 forward_state = 0
+rrt_state = 'goal'
 map_waypoints = []
 world_waypoints = []
 forward_state = 0
 node_list = []
 last_waypoints_angle = 0
 ahead_goal_attempts = 0
+avoiding_object = False
+avoiding_object_angle = 0
+
+avoiding_time = 10 # 10s for the robot to spin 360 degrees to capture more lidar data
+moving_to_goal = False
 valid_goal = True
+
+waiting = True
+delay_steps = 90
+wait_counter = 0
 
 # Odometry
 pose_x     = 0
@@ -117,7 +119,7 @@ vR = 0
 lidar_sensor_readings = [] # List to hold sensor readings
 lidar_offsets = np.linspace(-LIDAR_ANGLE_RANGE/2., +LIDAR_ANGLE_RANGE/2., LIDAR_ANGLE_BINS)
 lidar_offsets = lidar_offsets[83:len(lidar_offsets)-83] # Only keep lidar readings not blocked by robot chassis
-lidar_threshold = 0.6 # if object in front of robot is within this meter threshold
+lidar_threshold = 1.2 # if object in front of robot is within this meter threshold
 lidar_front_readings = []
 lidar_center = 250
 lidar_width = 75
@@ -136,13 +138,14 @@ filtered_lidar_map = np.zeros(shape=[360,360])
 lidar_map_generated = False
 
 def reset_variables():
-    global map_waypoints, world_waypoints, node_list, last_waypoints_angle, valid_goal, ahead_goal_attempts
+    global map_waypoints, world_waypoints, node_list, last_waypoints_angle, valid_goal, ahead_goal_attempts, goal_point
     map_waypoints = []
     world_waypoints = []
     node_list = []
     last_waypoints_angle = pose_theta
     valid_goal = True
     ahead_goal_attempts = 0
+    goal_point = (0, 0)
 
 # Main Loop
 while robot.step(timestep) != -1:
@@ -153,10 +156,6 @@ while robot.step(timestep) != -1:
     pose_x = gps.getValues()[0]
     pose_y = gps.getValues()[1]
     
-
-    elapsed_time += timestep / 1000.0
-    delta_time = timestep / 1000.0
-    
     n = compass.getValues()
     rad = -((math.atan2(n[0], n[2]))-1.5708)
     pose_theta = rad
@@ -164,6 +163,7 @@ while robot.step(timestep) != -1:
 
     lidar_sensor_readings = lidar.getRangeImage()
     lidar_sensor_readings = lidar_sensor_readings[83:len(lidar_sensor_readings)-83]
+    # print("LIDAR SENSOR READINGS: ", lidar_sensor_readings)
     lidar_front_readings = lidar_sensor_readings[lidar_center - lidar_width : lidar_center + lidar_width + 1]
     current_map_location = lid.globalcoords_to_map_coords(pose_x, pose_y)
     
@@ -175,71 +175,77 @@ while robot.step(timestep) != -1:
     lidar_map_generated = lid.make_lidar_map(pose_x, pose_y, pose_theta, lidar_map, lidar_sensor_readings, display)
     
     key = keyboard.getKey()
-    if key == ord('S'):
-        grippee.tele_increment([-1, 0, 0])
-    elif key == ord('W'):
-        grippee.tele_increment([1, 0, 0])
-    elif key ==ord("A"):
-        grippee.tele_increment([0, -1, 0])
-    elif key == ord("D"):
-        grippee.tele_increment([0, 1, 0])
-    elif key == ord("E"):
-        grippee.tele_increment([0, 0, 1])
-    elif key == ord("Q"):
-        grippee.tele_increment([0, 0, -1])
-    elif key == ord("O"):
-        grippee.openGrip()
-    elif key == ord("C"):
-        grippee.closeGrip()
-    elif key == ord("G"):
-        # go to basked
-        grippee.move_to_basket()
-    elif key == ord("H"):
-        # go to viewport
-        grippee.move_arm_to_position([0, -.3, -.25])
-    else: pass
 
+    # if the current waypoint is at the end of the waypoints list or the waypoints list is not populated, then filter the lidar map and run RRT*
     if (curr_waypoint == len(world_waypoints)-1 or len(map_waypoints) == 0) and lidar_map_generated:
         reset_variables()
         print("filtering...")
         filtered_lidar_map = lid.filter_lidar_map(lidar_map)
-        filtered_lidar_map = lid.expand_pixels(filtered_lidar_map, box_size=10)
+        filtered_lidar_map = lid.expand_pixels(filtered_lidar_map, box_size=5)
         lid.display_map(display, filtered_lidar_map)
 
         current_map_position = lid.globalcoords_to_map_coords(pose_x, pose_y)
+        # update based on new lidar map
         frontiers, unknown, explored, obstacles = rrt.map_update(filtered_lidar_map)
         bounds = np.array([[0,360],[0,360]])
 
         while len(map_waypoints) == 0 and len(frontiers) != 0:
-            if valid_goal == True:
-                goal_point, valid_goal = rrt.get_random_frontier_vertex_ahead(current_map_position[0], current_map_position[1], last_waypoints_angle)
+            print('entered into the rrt while loop')
+            print('length of frontiers: ', len(frontiers))
+            print(frontiers)
+
+            if valid_goal == True and ahead_goal_attempts < 5:
+                result = rrt.get_random_frontier_vertex_ahead(current_map_position[0], current_map_position[1], last_waypoints_angle)
+                if result is not None:
+                    goal_point, valid_goal = result
+                print("FIRST TRIED GOAL POINT: ", goal_point)
+                print("VALID GOAL BOOL: ", valid_goal)
+                ahead_goal_attempts += 1
+
             else:
                 goal_point = rrt.get_random_frontier_vertex()
+                print('ANOTHER TRIED GOAL POINT: ', goal_point)
 
-            node_list, map_waypoints = rrt.rrt_star(filtered_lidar_map, bounds, rrt.obstacles, rrt.point_is_valid, current_map_position, goal_point, 500, 30)
+            node_list, map_waypoints = rrt.rrt_star(filtered_lidar_map, bounds, rrt.obstacles, rrt.point_is_valid, current_map_position, goal_point, 250, 30)
             if len(node_list) > 0:
                 rrt.visualize_2D_graph(bounds, rrt.obstacles, node_list, goal_point, 'robot_rrt_star_run.png')
+            
+            print('here are the map waypoints: ', map_waypoints)
 
         if map_waypoints is not None and len(map_waypoints) > 0:
             world_waypoints = [lid.map_coords_to_global_coords(pt[0], pt[1]) for pt in map_waypoints]
         else:
             print("map_waypoints is None!")
+            # world_waypoints = []
+
 
         curr_waypoint = 0
         elapsed_time = 0
     
     print('pos: ', pose_x, pose_y, world_theta)
+    print('avoiding object val: ', avoiding_object)
     
     valid_goal = True
+    # if (curr_waypoint <= len(world_waypoints)-1):
+    #     last_waypoints_angle = pose_theta
 
     if (len(lidar_front_readings) > 0):
         print('lowest front lidar reading: ', np.min(np.array(lidar_front_readings)))
-    if np.any(np.array(lidar_front_readings) < lidar_threshold):
+    if np.any(np.array(lidar_front_readings) < lidar_threshold) and avoiding_object == False:
         reset_variables()
+        avoiding_object = True
+        avoiding_object_angle = world_theta
         print('AVOIDING OBJECT!')
 
+    if avoiding_object == True:
+            elapsed_time += timestep / 1000.0
+            print(elapsed_time)
+            if elapsed_time >= avoiding_time or ((world_theta - avoiding_object_angle + math.pi) % (2 * math.pi) - math.pi) > np.radians(30) or curr_waypoint > 0:
+                avoiding_object = False
+
     if len(map_waypoints) > 1:
-        last_waypoints_angle = rrt.get_last_waypoint_direction(map_waypoints[-1], map_waypoints[-2])
+        # last_waypoints_angle = rrt.get_last_waypoint_direction(map_waypoints[-1], map_waypoints[-2])
+        last_waypoints_angle = rrt.get_last_waypoint_direction(map_waypoints[-1], map_waypoints[0])
     vels, curr_waypoint = ik.nav_to_waypoint(world_waypoints, curr_waypoint, pose_x, pose_y, world_theta)
 
     vL = vels[0]
@@ -251,3 +257,20 @@ while robot.step(timestep) != -1:
     
     robot_parts["wheel_left_joint"].setVelocity(vL)
     robot_parts["wheel_right_joint"].setVelocity(vR)
+    
+    
+    ##########################################################################################
+    # GRABBING ARM
+    ##########################################################################################
+    if(gripper_status=="open"):
+        # Close gripper, note that this takes multiple time steps...
+        robot_parts["gripper_left_finger_joint"].setPosition(0)
+        robot_parts["gripper_right_finger_joint"].setPosition(0)
+        if right_gripper_enc.getValue()<=0.005:
+            gripper_status="closed"
+    else:
+        # Open gripper
+        robot_parts["gripper_left_finger_joint"].setPosition(0.045)
+        robot_parts["gripper_right_finger_joint"].setPosition(0.045)
+        if left_gripper_enc.getValue()>=0.044:
+            gripper_status="open"
