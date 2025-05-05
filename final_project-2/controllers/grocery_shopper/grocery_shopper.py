@@ -259,7 +259,21 @@ while robot.step(timestep) != -1:
 
     if len(map_waypoints) > 1:
         last_waypoints_angle = rrt.get_last_waypoint_direction(map_waypoints[-1], map_waypoints[-2])
+    prev_wp = curr_waypoint
     vels, curr_waypoint = ik.nav_to_waypoint(world_waypoints, curr_waypoint, pose_x, pose_y, world_theta)
+    
+    print("current waypoint", curr_waypoint)
+    print("prev_wp waypoint", prev_wp)
+    if curr_waypoint != prev_wp:        
+        robot_parts["wheel_left_joint"].setVelocity(0.0)
+        robot_parts["wheel_right_joint"].setVelocity(0.0)
+        print("running cv")
+        cv.run_cv(camera, depth_cam)
+
+      
+        robot.step(3 * timestep) 
+
+    vL, vR = vels
 
     vL = vels[0]
     vR = vels[1]
