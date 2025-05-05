@@ -58,7 +58,7 @@ target_pos = (-0.4, 0.0, 0.09, 0.07, 1.02, -3.16, 1.27, 1.32, 0.0, 1.41, 'inf', 
 # wheel_left.setVelocity(0.0)           
 # wheel_right.setVelocity(0.0)
 # set camera properties
-# FIELD_OF_VIEW = camera.getFov()
+
 # CAMERA_HEIGHT = camera.getHeight()
 # CAMERA_WIDTH = camera.getWidth()
 # FOCAL_LENGTH = camera.getFocalLength()
@@ -105,6 +105,7 @@ def run_cv(camera, depth_cam):
 
         u = (cx + 0.5) / CAMERA_WIDTH
         v = (cy + 0.5) / CAMERA_HEIGHT 
+        FIELD_OF_VIEW = camera.getFov()
         cx_s = u * depth_W
         cy_s = v * depth_H
         cx_d = int(depth_H - 1 - cy_s)
